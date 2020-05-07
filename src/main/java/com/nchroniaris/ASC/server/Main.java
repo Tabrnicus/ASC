@@ -1,4 +1,4 @@
-package com.nchroniaris.ASC.client;
+package com.nchroniaris.ASC.server;
 
 import com.nchroniaris.ASC.util.UtilExample;
 
@@ -6,14 +6,14 @@ public class Main {
 
     public static void main(String[] args) {
 
-        System.out.println("Hello from client");
+        System.out.println("Hello from server");
         UtilExample.sharedExample();
 
     }
 
     public static int example() {
 
-        return 0;
+        return 1;
 
     }
 
