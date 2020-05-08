@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.server;
 
+import com.nchroniaris.ASC.server.core.Main;
 import org.junit.Assert;
 import org.junit.Test;
 

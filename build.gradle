@@ -12,7 +12,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.nchroniaris.ASC.client.Main'
+        attributes 'Main-Class': 'com.nchroniaris.ASC.client.core.Main'
     }
 
     archiveFileName = 'ASC-client.jar'
@@ -24,7 +24,7 @@ task serverJar(type: Jar) {
     from sourceSets.main.output
 
     manifest {
-        attributes 'Main-Class': 'com.nchroniaris.ASC.server.Main'
+        attributes 'Main-Class': 'com.nchroniaris.ASC.server.core.Main'
     }
 
     archiveFileName = 'ASC-server.jar'

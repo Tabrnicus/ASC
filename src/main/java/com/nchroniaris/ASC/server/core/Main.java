@@ -1,4 +1,4 @@
-package com.nchroniaris.ASC.server;
+package com.nchroniaris.ASC.server.core;
 
 import com.nchroniaris.ASC.util.UtilExample;
 
