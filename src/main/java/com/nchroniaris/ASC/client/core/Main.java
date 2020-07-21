@@ -1,6 +1,6 @@
 package com.nchroniaris.ASC.client.core;
 
-import com.nchroniaris.ASC.util.UtilExample;
+import com.nchroniaris.ASC.client.database.ASCRepository;
 
 public class Main {
 
@@ -44,8 +44,11 @@ public class Main {
      */
     private static void runClient(boolean serverless) {
 
-        ASCClient client = new ASCClient(serverless);
-        client.start();
+//        ASCClient client = new ASCClient(serverless);
+//        client.start();
+
+        ASCRepository repo = ASCRepository.getRepository();
+
 
     }
 

@@ -8,11 +8,23 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.32.3.1'
+
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.nchroniaris.ASC.client.core.Main'
+        attributes(
+                'Main-Class': 'com.nchroniaris.ASC.client.core.Main'
+        )
+    }
+
+    // https://www.baeldung.com/gradle-fat-jar
+    // As far as I understand this creates a jar file with the JDBC dependency included in it. Since this program is meant to be distributed and used as a standalone jar (Java is the only "dependency" required) I believe it is a reasonable solution.
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
     archiveFileName = 'ASC-client.jar'
