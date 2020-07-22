@@ -1,8 +1,12 @@
 package com.nchroniaris.ASC.client.core;
 
+import com.nchroniaris.ASC.client.database.ASCRepository;
+import com.nchroniaris.ASC.util.model.GameServer;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.List;
 
 public class ASCClient {
 
@@ -49,6 +53,23 @@ public class ASCClient {
 
         // Test output to see if the arguments work or not
         System.out.println(String.format("The current serverless value is {%s}", this.serverless ? "true" : "false"));
+
+        testRepo();
+
+    }
+
+    private void testRepo() {
+
+        ASCRepository repo = ASCRepository.getRepository();
+
+        List<GameServer> serverList = repo.getAutostartGameServers();
+
+        for (GameServer server : serverList) {
+
+            System.out.println(String.format("Server ID: %d\n\tDescription:\t%s\n\tGame:\t\t\t%s\n\tMoniker:\t\t%s\n\tPort:\t\t\t%d\n\tEnabled:\t\t%s\n\tAutostart:\t\t%s", server.getSid(), server.getDescription(), server.getGame(), server.getMoniker(), server.getPort(), server.isEnabled() ? "true" : "false", server.isAutostart() ? "true" : "false"));
+            System.out.println("\n----------");
+
+        }
 
     }
 
