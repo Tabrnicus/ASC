@@ -1,11 +1,16 @@
 package com.nchroniaris.ASC.client.database;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.nchroniaris.ASC.client.core.ASCClient;
+import com.nchroniaris.ASC.client.model.Event;
+import com.nchroniaris.ASC.client.model.EventFactory;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,13 +93,14 @@ public class ASCRepository {
 
     /**
      * Although the use of this function can be considered slightly awkward, it is for good reason. Since I require at least two very similar queries that get the same result, I decided to abstract away most of the operation and leave an "optional" WHERE clause to be specified. This gives the benefit that the code does not need to be duplicated for each similar operation.
+     *
      * @param whereStmt A String formatted in proper SQLite that is ONLY the WHERE component of a statement that queries game servers from the table "servers".
      * @return A List object holding all the model GameServer objects that match the query created by appending the whereStmt String.
      */
     private List<GameServer> genericGameServerQuery(String whereStmt) {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
-        String query = "SELECT sid, description, game, moniker, port, enabled, autostart FROM servers " + whereStmt;
+        String query = "SELECT sid, description, game, moniker, stopcommand, warncommand, port, enabled, autostart FROM servers " + whereStmt;
 
         List<GameServer> serverList = new ArrayList<>();
 
@@ -113,6 +119,8 @@ public class ASCRepository {
                         rs.getString("description"),
                         rs.getString("game"),
                         rs.getString("moniker"),
+                        rs.getString("stopcommand"),
+                        rs.getString("warncommand"),
                         rs.getInt("port"),
                         rs.getBoolean("enabled"),
                         rs.getBoolean("autostart")
@@ -135,6 +143,68 @@ public class ASCRepository {
         }
 
         return serverList;
+
+    }
+
+    /**
+     * This method queries the database for all the events for a given GameServer as a parameter.
+     *
+     * @param server The GameServer object to get all the events for.
+     * @return A List of all the events associated with the particular GameServer.
+     */
+    public List<Event> getAllEvents(GameServer server) {
+
+        // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
+        String query = "SELECT e.time, e.etype, e.args FROM events AS e INNER JOIN servers AS s USING(sid) WHERE s.sid = ?";
+
+        List<Event> eventList = new ArrayList<>();
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            // According to the Java sql docs, "A ResultSet object is automatically closed when the Statement object that generated it is closed, ..." therefore not closing this should be safe because the try-with-resources block will attempt to close the prepared statement.
+            pstmt.setInt(1, server.getSid());
+            ResultSet rs = pstmt.executeQuery();
+
+            Gson gson = new Gson();
+
+            while (rs.next()) {
+
+                try {
+
+                    // Add the event based on its etype, passing all information to the factory class. We also deserialize the JSON string that is held in the args field.
+                    // https://stackoverflow.com/questions/5554217/google-gson-deserialize-listclass-object-generic-type/17300003#17300003
+                    eventList.add(EventFactory.buildEvent(
+                            rs.getInt("etype"),
+                            server,
+                            LocalTime.now(), // rs.getTime("time").toLocalTime(),   // TODO: 2020-07-23 This does not work, make sure time is in the right format
+                            gson.fromJson(rs.getString("args"), String[].class)
+                    ));
+
+                } catch (JsonSyntaxException e) {
+
+                    System.err.println(String.format("There was an issue parsing Json data from the args field! Got (%s)", rs.getString("args")));
+                    e.printStackTrace();
+                    System.exit(1);
+
+                }
+
+            }
+
+        } catch (SQLException e) {
+
+            System.err.println(ASCRepository.SQLExceptionError);
+            e.printStackTrace();
+            System.exit(1);
+
+        } catch (FileNotFoundException e) {
+
+            e.printStackTrace();
+            System.exit(1);
+
+        }
+
+        return eventList;
 
     }
 

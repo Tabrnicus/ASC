@@ -1,11 +1,13 @@
 package com.nchroniaris.ASC.client.core;
 
 import com.nchroniaris.ASC.client.database.ASCRepository;
+import com.nchroniaris.ASC.client.model.Event;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ASCClient {
@@ -20,6 +22,7 @@ public class ASCClient {
 
     /**
      * Uses the location of the Main class as a reference to obtain the path to the directory that encloses the jar file being run. We must decode the path as a URL as the presence of any spaces in the path will result in a `%20` instead of an actual space. Th
+     *
      * @return The full, unescaped path of the directory that the .jar resides in.
      */
     private static String findJarWorkingDir() {
@@ -58,18 +61,27 @@ public class ASCClient {
 
     }
 
+    // Debug method. Will be removed later
     private void testRepo() {
 
         ASCRepository repo = ASCRepository.getRepository();
 
-        List<GameServer> serverList = repo.getAutostartGameServers();
+        List<GameServer> serverList = repo.getAllGameServers();
+        List<Event> masterEventList = new ArrayList<>();
 
         for (GameServer server : serverList) {
 
             System.out.println(String.format("Server ID: %d\n\tDescription:\t%s\n\tGame:\t\t\t%s\n\tMoniker:\t\t%s\n\tPort:\t\t\t%d\n\tEnabled:\t\t%s\n\tAutostart:\t\t%s", server.getSid(), server.getDescription(), server.getGame(), server.getMoniker(), server.getPort(), server.isEnabled() ? "true" : "false", server.isAutostart() ? "true" : "false"));
             System.out.println("\n----------");
 
+            masterEventList.addAll(repo.getAllEvents(server));
+
         }
+
+        for (Event e : masterEventList) {
+            e.run();
+        }
+
 
     }
 
