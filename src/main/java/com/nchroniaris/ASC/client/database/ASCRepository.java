@@ -68,38 +68,14 @@ public class ASCRepository {
     // Actual DB Methods //
 
     /**
-     * This method queries the database for all the game servers with the autostart flag set to true.
-     *
-     * @return A List object holding all the model GameServer objects that match the query.
-     */
-    public List<GameServer> getAutostartGameServers() {
-
-        return this.genericGameServerQuery("WHERE autostart = 1");
-
-    }
-
-    /**
-     * This method queries the database for all the game servers stored in the servers table.
+     * This method queries the database for all the game servers stored in the servers table. The intention is that the caller will sort through the results and get what they need.
      *
      * @return A List object holding all the model GameServer objects in the table
      */
-    public List<GameServer> getAllGameServers() {
-
-        // This is empty because we don't want to have a condition on the query as we want all the servers in the table.
-        return this.genericGameServerQuery("");
-
-    }
-
-    /**
-     * Although the use of this function can be considered slightly awkward, it is for good reason. Since I require at least two very similar queries that get the same result, I decided to abstract away most of the operation and leave an "optional" WHERE clause to be specified. This gives the benefit that the code does not need to be duplicated for each similar operation.
-     *
-     * @param whereStmt A String formatted in proper SQLite that is ONLY the WHERE component of a statement that queries game servers from the table "servers".
-     * @return A List object holding all the model GameServer objects that match the query created by appending the whereStmt String.
-     */
-    private List<GameServer> genericGameServerQuery(String whereStmt) {
+    private List<GameServer> getAllGameServers() {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
-        String query = "SELECT sid, description, game, moniker, stopcommand, warncommand, port, enabled, autostart FROM servers " + whereStmt;
+        String query = "SELECT sid, description, game, moniker, stopcommand, warncommand, port, enabled, autostart FROM servers";
 
         List<GameServer> serverList = new ArrayList<>();
 
