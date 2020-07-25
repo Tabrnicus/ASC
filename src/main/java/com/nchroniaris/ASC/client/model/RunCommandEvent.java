@@ -30,6 +30,12 @@ public class RunCommandEvent extends Event {
 
     }
 
+    /**
+     * This is an extra constructor meant for subclasses that do not have a command to specify upon instantiation. Using this implies that the subclass will override assembleCommand().
+     *
+     * @param gameServer A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
+     * @param time       A LocalTime object that describes the exact time of day that the event should run.
+     */
     protected RunCommandEvent(GameServer gameServer, LocalTime time) {
 
         super(gameServer, time);

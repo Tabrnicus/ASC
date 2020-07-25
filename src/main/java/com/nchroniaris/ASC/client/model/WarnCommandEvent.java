@@ -22,6 +22,9 @@ public class WarnCommandEvent extends RunCommandEvent {
 
         super(gameServer, time);
 
+        if (timeIntervalMinutes == null || timeIntervalMinutes.equals(""))
+            throw new IllegalArgumentException("timeInterval cannot be null or empty!");
+
         this.timeIntervalMinutes = timeIntervalMinutes;
 
     }
@@ -37,4 +40,5 @@ public class WarnCommandEvent extends RunCommandEvent {
         return gameServer.getWarnCommand().replace("$TIME", this.timeIntervalMinutes);
 
     }
+
 }

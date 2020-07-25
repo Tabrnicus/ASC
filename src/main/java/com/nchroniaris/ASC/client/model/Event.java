@@ -40,6 +40,7 @@ public abstract class Event {
 
     /**
      * A method that allows the event to actually take place. Every event subclass must implement such a method.
+     *
      * @return A boolean result based on whether the run was successful or not.
      */
     public abstract boolean run();

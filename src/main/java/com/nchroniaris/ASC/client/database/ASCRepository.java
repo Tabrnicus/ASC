@@ -10,7 +10,6 @@ import com.nchroniaris.ASC.util.model.GameServer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -177,7 +176,9 @@ public class ASCRepository {
                     eventList.add(EventFactory.buildEvent(
                             rs.getInt("etype"),
                             server,
-                            LocalTime.now(), // rs.getTime("time").toLocalTime(),   // TODO: 2020-07-23 This does not work, make sure time is in the right format
+
+                            // Since SQLite does not support storing an actual time type, we have to store it as a string. Therefore, we have to retrieve it as a string and use the java.sql.Time.valueOf() method to convert the string to a Time object. Further, since we are using LocalTime() in Event, we have to convert the SQL Time object to a LocalTime object.
+                            Time.valueOf(rs.getString("time")).toLocalTime(),
                             gson.fromJson(rs.getString("args"), String[].class)
                     ));
 

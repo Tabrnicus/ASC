@@ -37,7 +37,7 @@ public class ASCClient {
 
         } catch (UnsupportedEncodingException e) {
 
-            System.err.println("[CRITIAL] Something went wrong with finding the location of the .jar file: " + e.getMessage());
+            System.err.println("[CRITICAL] Something went wrong with finding the location of the .jar file: " + e.getMessage());
             System.exit(1);
 
         }
@@ -56,6 +56,10 @@ public class ASCClient {
 
         // Test output to see if the arguments work or not
         System.out.println(String.format("The current serverless value is {%s}", this.serverless ? "true" : "false"));
+
+//        ASCRepository repo = ASCRepository.getRepository();
+//
+//        repo.testTime();
 
         testRepo();
 

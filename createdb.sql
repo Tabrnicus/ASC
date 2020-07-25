@@ -144,7 +144,7 @@ VALUES (6,
 INSERT INTO events
 VALUES (7,
         4,
-        '03:00:00',
+        '03:00:15',
         0,
         '["/bin/bash", "-flag1", "-flag2"]');
 
