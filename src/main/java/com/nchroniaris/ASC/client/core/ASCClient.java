@@ -6,7 +6,7 @@ import java.net.URLDecoder;
 
 public class ASCClient {
 
-    private boolean serverless;
+    private final boolean serverless;
 
     // This attribute holds the precise, absolute path for the directory that contains the jar file.
     // I am aware doing this might be a bit awkward, but the specific way I have thought this application out is in such a way that it is meant to be "portable". Therefore, I would prefer if all relevant files that are core to the application reside in some sort of directory relative to the jar file. This also comes with the benefit of not having to make sure that the working directory is the same as the directory where the jar resides, as ALL files will be relative to THIS path instead of relative to the working dir.
@@ -46,10 +46,23 @@ public class ASCClient {
 
     }
 
+    /**
+     * The main method that starts the main loop of the client program.
+     */
     public void start() {
 
-        // Test output to see if the arguments work or not
-        System.out.println(String.format("The current serverless value is {%s}", this.serverless ? "true" : "false"));
+        // Get all servers
+
+        // Get all events
+
+        // Figure out what is today and what is tomorrow
+
+        // Schedule events
+
+        if (!this.serverless)
+            System.out.println("Pretend we register our servers with a server");
+
+        // Profit?
 
     }
 
