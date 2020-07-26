@@ -45,7 +45,7 @@ public class RunCommandEvent extends Event {
     }
 
     @Override
-    public boolean run() {
+    public final void run() {
 
         // Implementation of the Template pattern. In this case run() is the overarching algorithm and assembleCommand() is the
         String command = this.assembleCommand();
@@ -57,12 +57,10 @@ public class RunCommandEvent extends Event {
         // Debug
         System.out.println(String.format("pretend we are running the command (%s), at (%s), with the game-moniker combo (%s_%s)", command, time.toString(), super.gameServer.getGame(), super.gameServer.getMoniker()));
 
-        return true;
-
     }
 
     /**
-     * This function is part of the template pattern implementation of this class. This is meant to be overridden in subclasses to provide a unique command to run. By default it jsut regurgitates the instance variable set in the constructor.
+     * This function is part of the template pattern implementation of this class. This is meant to be overridden in subclasses to provide a unique command to run. By default it just regurgitates the instance variable set in the constructor.
      *
      * @return A command meant to be run for the game server that is associated with this event.
      */

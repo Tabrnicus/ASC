@@ -35,12 +35,10 @@ public class ExecuteFileEvent extends Event {
     }
 
     @Override
-    public boolean run() {
+    public void run() {
 
         // Debug
         System.out.println(String.format("pretend we are running the file (%s) at (%s) with the game-moniker combo (%s_%s) with additional args (%s)", this.executablePath, time.toString(), super.gameServer.getGame(), super.gameServer.getMoniker(), Arrays.toString(this.additionalArgs)));
-
-        return true;
 
     }
 

@@ -7,7 +7,7 @@ import java.time.LocalTime;
 /**
  * Abstract class that represents a general event that can be run against a given game server. All events need to run, so that is what they have in common.
  */
-public abstract class Event {
+public abstract class Event implements Runnable {
 
     // TODO: 2020-07-22 perhaps change LocalTime to LocalDateTime
     protected final GameServer gameServer;
@@ -34,15 +34,14 @@ public abstract class Event {
      *
      * @return LocalTime object that is the precise time when the event should run.
      */
-    public LocalTime getTime() {
+    public final LocalTime getTime() {
         return time;
     }
 
     /**
      * A method that allows the event to actually take place. Every event subclass must implement such a method.
-     *
-     * @return A boolean result based on whether the run was successful or not.
      */
-    public abstract boolean run();
+    @Override
+    public abstract void run();
 
 }
