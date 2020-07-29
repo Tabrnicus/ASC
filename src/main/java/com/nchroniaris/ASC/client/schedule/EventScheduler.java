@@ -50,6 +50,17 @@ public class EventScheduler {
     }
 
     /**
+     * Call this method if you want to immediately execute a particular event using the scheduler. Cannot guarantee that the passed event will start executing at the time of the call, as there could be other jobs in the queue. This behaviour should be very rare though
+     *
+     * @param event The event to be executed
+     */
+    public void executeEventNow(Event event) {
+
+        this.executorService.execute(event);
+
+    }
+
+    /**
      * When you are done with the EventScheduler instance, call this method. **This method is blocking, as it waits until the ScheduledExecutorService is shutdown**. If it is not called, the ScheduledExecutorService will be perpetually alive and will block the main thread forever.
      *
      * @throws InterruptedException Passes the Exception that could be thrown by awaitTermination().
