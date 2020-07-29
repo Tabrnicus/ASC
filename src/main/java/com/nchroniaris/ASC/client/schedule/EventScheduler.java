@@ -61,22 +61,13 @@ public class EventScheduler {
 
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-
-        // https://stackoverflow.com/questions/171952/is-there-a-destructor-for-java
-        // As pointed out in ^^, this is for sanity checking in case the caller does not call shutdown().
-
-        if (!this.executorService.isShutdown()) {
-            System.err.println("[ERROR] There was an EventScheduler instance created, but not shutdown! Please call shutdown() after you are done with the class to avoid any weirdness.");
-
-            this.shutdown();
-
-        }
-
-    }
-
+    /**
+     * Calculates the amount of time (in ms) between `currentTime` and `scheduledTime`, "rounded" (see comment in function) to the next day. In other words, this is the shortest duration possible that you can ADD to `currentTime` which will make it will run at `scheduledTime`.
+     *
+     * @param scheduledTime LocalTime object that represents at what hour/minute/second of the day the event has to run.
+     * @param currentTime   LocalTime object that represents the hour/minute/second at the time of the call
+     * @return A long representing the number of milliseconds between the two events.
+     */
     private long calculateDelay(LocalTime scheduledTime, LocalTime currentTime) {
 
         /*
@@ -133,5 +124,20 @@ public class EventScheduler {
 
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+
+        // https://stackoverflow.com/questions/171952/is-there-a-destructor-for-java
+        // As pointed out in ^^, this is for sanity checking in case the caller does not call shutdown().
+
+        if (!this.executorService.isShutdown()) {
+            System.err.println("[ERROR] There was an EventScheduler instance created, but not shutdown! Please call shutdown() after you are done with the class to avoid any weirdness.");
+
+            this.shutdown();
+
+        }
+
+    }
 
 }
