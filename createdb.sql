@@ -8,6 +8,7 @@ CREATE TABLE servers
     description TEXT                NOT NULL,
     game        TEXT                NOT NULL,
     moniker     TEXT                NOT NULL,
+    startfile   TEXT                NOT NULL,
     stopcommand TEXT                NOT NULL,
     warncommand TEXT                NOT NULL,
     port        INTEGER             NOT NULL,
@@ -36,13 +37,16 @@ INSERT INTO eventType
 VALUES (0, 'EXECUTE');
 
 INSERT INTO eventType
-VALUES (1, 'COMMAND');
+VALUES (1, 'START');
 
 INSERT INTO eventType
-VALUES (2, 'STOP');
+VALUES (2, 'COMMAND');
 
 INSERT INTO eventType
-VALUES (3, 'WARN');
+VALUES (3, 'STOP');
+
+INSERT INTO eventType
+VALUES (4, 'WARN');
 
 -- Servers
 
@@ -51,6 +55,7 @@ VALUES (1,
         'Example 1',
         'game1',
         'server1',
+        '/bin/bash',
         'stop',
         'There are $TIME minute(s) left',
         25565,
@@ -62,6 +67,7 @@ VALUES (2,
         'Example 2',
         'game1',
         'server2',
+        '/bin/bash',
         'stop2',
         'There are $TIME minute(s) left',
         25566,
@@ -73,6 +79,7 @@ VALUES (3,
         'Example 3',
         'game2',
         'server1',
+        '/bin/zsh',
         'exit',
         'There are $TIME minute(s) left',
         25585,
@@ -84,6 +91,7 @@ VALUES (4,
         'Example 1',
         'game2',
         'server2',
+        '/bin/zsh',
         'exit2',
         'There are $TIME minute(s) left',
         25590,
@@ -96,53 +104,53 @@ INSERT INTO events
 VALUES (1,
         1,
         '09:15:00',
-        0,
-        '["/bin/sh"]');
+        1,
+        '[]');
 
 INSERT INTO events
 VALUES (2,
         1,
         '09:20:00',
-        1,
+        2,
         '["someargument"]');
 
 INSERT INTO events
 VALUES (3,
         1,
         '17:00:00',
-        2,
-        '[]');
-
-INSERT INTO events
-VALUES (3,
-        2,
-        '16:00:00',
         3,
-        '["30"]');
+        '[]');
 
 INSERT INTO events
 VALUES (4,
         2,
-        '10:15:00',
-        0,
-        '["/bin/zsh"]');
+        '16:00:00',
+        4,
+        '["30"]');
 
 INSERT INTO events
 VALUES (5,
         2,
-        '10:20:00',
+        '10:15:00',
         1,
-        '["someotherargument"]');
-
-INSERT INTO events
-VALUES (6,
-        3,
-        '03:00:00',
-        2,
         '[]');
 
 INSERT INTO events
+VALUES (6,
+        2,
+        '10:20:00',
+        2,
+        '["someotherargument"]');
+
+INSERT INTO events
 VALUES (7,
+        3,
+        '03:00:00',
+        3,
+        '[]');
+
+INSERT INTO events
+VALUES (8,
         4,
         '03:00:15',
         0,

@@ -12,7 +12,7 @@ public class StopCommandEvent extends RunCommandEvent {
     /**
      * Since the stop command is known ahead of time, there is no need to specify a command to run during instantiation
      *
-     * @param gameServer A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
+     * @param gameServer A GameServer object that describes the particular details of the game server that the event belongs to.
      * @param time       A LocalTime object that describes the exact time of day that the event should run.
      */
     public StopCommandEvent(GameServer gameServer, LocalTime time) {

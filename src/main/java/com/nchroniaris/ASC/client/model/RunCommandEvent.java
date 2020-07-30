@@ -14,7 +14,7 @@ public class RunCommandEvent extends Event {
     /**
      * The main constructor for RunCommandEvent. As required by the superclass we must get a GameServer and a LocalTime. We additionally get a command to run in string form.
      *
-     * @param gameServer   A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
+     * @param gameServer   A GameServer object that describes the particular details of the game server that the event belongs to.
      * @param time         A LocalTime object that describes the exact time of day that the event should run.
      * @param commandToRun A string that represents the particular command to run.
      */

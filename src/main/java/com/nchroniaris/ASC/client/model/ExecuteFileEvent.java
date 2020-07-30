@@ -30,6 +30,10 @@ public class ExecuteFileEvent extends Event {
             throw new IllegalArgumentException(String.format("File (%s) does not exist! Please specify an existing file with the correct permissions", executablePath));
 
         this.executablePath = executablePath;
+
+        if (additionalArgs == null)
+            throw new IllegalArgumentException("Additional arguments cannot be null! If you don't want to add any additional arguments, initialize an empty string list.");
+
         this.additionalArgs = additionalArgs;
 
     }

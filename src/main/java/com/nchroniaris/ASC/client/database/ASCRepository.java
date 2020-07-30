@@ -75,7 +75,7 @@ public class ASCRepository {
     public List<GameServer> getAllGameServers() {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
-        String query = "SELECT sid, description, game, moniker, stopcommand, warncommand, port, enabled, autostart FROM servers";
+        String query = "SELECT sid, description, game, moniker, startfile, stopcommand, warncommand, port, enabled, autostart FROM servers";
 
         List<GameServer> serverList = new ArrayList<>();
 
@@ -94,6 +94,7 @@ public class ASCRepository {
                         rs.getString("description"),
                         rs.getString("game"),
                         rs.getString("moniker"),
+                        rs.getString("startfile"),
                         rs.getString("stopcommand"),
                         rs.getString("warncommand"),
                         rs.getInt("port"),

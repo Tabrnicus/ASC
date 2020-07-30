@@ -11,6 +11,7 @@ public class GameServer {
     private final String game;
     private final String moniker;
 
+    private final String startFile;
     private final String stopCommand;
     private final String warnCommand;
 
@@ -19,7 +20,7 @@ public class GameServer {
     private final boolean enabled;
     private final boolean autostart;
 
-    public GameServer(int sid, String description, String game, String moniker, String stopCommand, String warnCommand, int port, boolean enabled, boolean autostart) {
+    public GameServer(int sid, String description, String game, String moniker, String startFile, String stopCommand, String warnCommand, int port, boolean enabled, boolean autostart) {
 
         this.sid = sid;
 
@@ -37,6 +38,11 @@ public class GameServer {
             throw new IllegalArgumentException("Moniker field cannot be null!");
 
         this.moniker = moniker;
+
+        if (startFile == null)
+            throw new IllegalArgumentException("Start File field cannot be null!");
+
+        this.startFile = startFile;
 
         if (stopCommand == null)
             throw new IllegalArgumentException("Stop Command field cannot be null!");
@@ -71,6 +77,10 @@ public class GameServer {
 
     public String getMoniker() {
         return moniker;
+    }
+
+    public String getStartFile() {
+        return startFile;
     }
 
     public String getStopCommand() {

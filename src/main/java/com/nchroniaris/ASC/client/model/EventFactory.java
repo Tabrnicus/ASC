@@ -34,12 +34,15 @@ public class EventFactory {
                     return new ExecuteFileEvent(server, time, args[0], Arrays.copyOfRange(args, 1, args.length));
 
                 case 1:
-                    return new RunCommandEvent(server, time, args[0]);
+                    return new StartServerEvent(server, time);
 
                 case 2:
-                    return new StopCommandEvent(server, time);
+                    return new RunCommandEvent(server, time, args[0]);
 
                 case 3:
+                    return new StopCommandEvent(server, time);
+
+                case 4:
                     return new WarnCommandEvent(server, time, args[0]);
 
                 default:
