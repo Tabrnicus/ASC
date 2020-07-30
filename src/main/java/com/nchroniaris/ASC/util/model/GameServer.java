@@ -17,10 +17,9 @@ public class GameServer {
 
     private final int port;
 
-    private final boolean enabled;
     private final boolean autostart;
 
-    public GameServer(int sid, String description, String game, String moniker, String startFile, String stopCommand, String warnCommand, int port, boolean enabled, boolean autostart) {
+    public GameServer(int sid, String description, String game, String moniker, String startFile, String stopCommand, String warnCommand, int port, boolean autostart) {
 
         this.sid = sid;
 
@@ -59,7 +58,6 @@ public class GameServer {
 
         this.port = port;
 
-        this.enabled = enabled;
         this.autostart = autostart;
     }
 
@@ -93,10 +91,6 @@ public class GameServer {
 
     public int getPort() {
         return port;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
     }
 
     public boolean isAutostart() {

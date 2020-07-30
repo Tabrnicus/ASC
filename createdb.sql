@@ -12,7 +12,6 @@ CREATE TABLE servers
     stopcommand TEXT                NOT NULL,
     warncommand TEXT                NOT NULL,
     port        INTEGER             NOT NULL,
-    enabled     INTEGER             NOT NULL,
     autostart   INTEGER             NOT NULL
 );
 
@@ -59,7 +58,6 @@ VALUES (1,
         'stop',
         'There are $TIME minute(s) left',
         25565,
-        1,
         1);
 
 INSERT INTO servers
@@ -71,7 +69,6 @@ VALUES (2,
         'stop2',
         'There are $TIME minute(s) left',
         25566,
-        1,
         1);
 
 INSERT INTO servers
@@ -83,8 +80,7 @@ VALUES (3,
         'exit',
         'There are $TIME minute(s) left',
         25585,
-        1,
-        0);
+        1);
 
 INSERT INTO servers
 VALUES (4,
@@ -95,7 +91,6 @@ VALUES (4,
         'exit2',
         'There are $TIME minute(s) left',
         25590,
-        0,
         0);
 
 -- Events
