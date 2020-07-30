@@ -72,7 +72,7 @@ public class ASCRepository {
      *
      * @return A List object holding all the model GameServer objects in the table
      */
-    private List<GameServer> getAllGameServers() {
+    public List<GameServer> getAllGameServers() {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
         String query = "SELECT sid, description, game, moniker, stopcommand, warncommand, port, enabled, autostart FROM servers";
