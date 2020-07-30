@@ -61,18 +61,6 @@ public class EventScheduler {
     }
 
     /**
-     * When you are done with the EventScheduler instance, call this method. **This method is blocking, as it waits until the ScheduledExecutorService is shutdown**. If it is not called, the ScheduledExecutorService will be perpetually alive and will block the main thread forever.
-     *
-     * @throws InterruptedException Passes the Exception that could be thrown by awaitTermination().
-     */
-    public void shutdown() throws InterruptedException {
-
-        this.executorService.shutdown();
-        this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-
-    }
-
-    /**
      * Calculates the amount of time (in ms) between `currentTime` and `scheduledTime`, "rounded" (see comment in function) to the next day. In other words, this is the shortest duration possible that you can ADD to `currentTime` which will make it will run at `scheduledTime`.
      *
      * @param scheduledTime LocalTime object that represents at what hour/minute/second of the day the event has to run.
@@ -135,6 +123,30 @@ public class EventScheduler {
 
     }
 
+    /**
+     * When you are done with the EventScheduler instance, call this method. **This method is blocking, as it waits until the ScheduledExecutorService is shutdown**. If it is not called, the ScheduledExecutorService will be perpetually alive and will block the main thread forever.
+     *
+     * @throws InterruptedException Passes the Exception that could be thrown by awaitTermination().
+     */
+    public void shutdown() throws InterruptedException {
+
+        this.executorService.shutdown();
+        this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+    }
+
+    /**
+     * This method exists in order to forcefully cancel the tasks in the ExecutorService. This should only be used when there is a requirement to shutdown the threads immediately. If you are looking for a way to do a normal shutdown and wait for all the threads to gracefully finish, refer to shutdown().
+     *
+     * @throws InterruptedException Passes the Exception that could be thrown by awaitTermination().
+     */
+    public void shutdownNow() throws InterruptedException {
+
+        this.executorService.shutdownNow();
+        this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+    }
+
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
@@ -145,7 +157,7 @@ public class EventScheduler {
         if (!this.executorService.isShutdown()) {
             System.err.println("[ERROR] There was an EventScheduler instance created, but not shutdown! Please call shutdown() after you are done with the class to avoid any weirdness.");
 
-            this.shutdown();
+            this.shutdownNow();
 
         }
 
