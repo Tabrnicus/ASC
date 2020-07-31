@@ -63,7 +63,7 @@ public class ASCClient {
             System.out.println("Server registration stub!");
 
         // TODO: 2020-07-30 perhaps dynamically inject this repo in order to facilitate testing
-        ASCRepository repo = ASCRepository.getRepository();
+        ASCRepository repo = ASCRepository.getInstance();
 
         // Obtain all the servers from the database
         List<GameServer> serverList = repo.getAllGameServers();

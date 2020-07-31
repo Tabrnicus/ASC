@@ -35,7 +35,7 @@ public class ASCRepository {
 
     }
 
-    public static ASCRepository getRepository() {
+    public static ASCRepository getInstance() {
 
         if (ASCRepository.repository == null)
             ASCRepository.repository = new ASCRepository();
