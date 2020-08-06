@@ -3,12 +3,12 @@ package com.nchroniaris.ASC.client.database;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.nchroniaris.ASC.client.core.ASCProperties;
+import com.nchroniaris.ASC.client.exception.DatabaseNotFoundException;
 import com.nchroniaris.ASC.client.model.Event;
 import com.nchroniaris.ASC.client.model.EventFactory;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +46,9 @@ public class ASCRepository {
      * The reason that this approach is chosen as opposed to keeping a single connection object alive for the duration of the enclosing class is that the DB operations that are actually run are very few and very far between (mostly running once a day) so it would not make much sense to keep a connection object alive for eighteen hours for example, only for the application to close it on exit.
      *
      * @return Returns the connection object that the caller can use to connect to the database.
-     * @throws FileNotFoundException Thrown if the database file specified in DBLocation does not exist
      * @throws SQLException          Thrown if the connection to the database fails somehow other than it not being there
      */
-    private Connection connect() throws SQLException, FileNotFoundException {
+    private Connection connect() throws SQLException {
 
         // Get properties instance to access path variable
         ASCProperties properties = ASCProperties.getInstance();
@@ -57,7 +56,7 @@ public class ASCRepository {
         // TODO: 2020-07-21 Proper Integrity check for DB
         // Check if the DB exists in the location specified. The reason that this is a separate check is that as far as I can tell, the default behaviour for the DriverManager.getConnection() method when ONLY the DB is missing (and NOT other folders in its path) is that it creates an empty DB which shouldn't technically be allowed. Therefore, if we don't do this check and you happen to delete the DB and run the program again, you will encounter other errors down the line since the schema would be empty. Obviously this is not a foolproof solution but it serves as an extra check
         if (!new File(properties.PATH_DB).exists())
-            throw new FileNotFoundException(String.format("[CRITICAL] Database file not found (%s)! Please generate it before running the base program.", properties.PATH_DB));
+            throw new DatabaseNotFoundException(String.format("[CRITICAL] Database file not found (%s)! Please generate it before running the base program.", properties.PATH_DB));
 
         // According to the sqlite tutorial for java, in order to use jdbc you must have the following string be prepended to the path.
         return DriverManager.getConnection("jdbc:sqlite:" + properties.PATH_DB);
@@ -105,12 +104,6 @@ public class ASCRepository {
         } catch (SQLException e) {
 
             System.err.println(ASCRepository.SQLExceptionError);
-            e.printStackTrace();
-
-            System.exit(1);
-
-        } catch (FileNotFoundException e) {
-
             e.printStackTrace();
             System.exit(1);
 
@@ -170,11 +163,6 @@ public class ASCRepository {
         } catch (SQLException e) {
 
             System.err.println(ASCRepository.SQLExceptionError);
-            e.printStackTrace();
-            System.exit(1);
-
-        } catch (FileNotFoundException e) {
-
             e.printStackTrace();
             System.exit(1);
 

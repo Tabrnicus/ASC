@@ -1,5 +1,7 @@
 package com.nchroniaris.ASC.client.core;
 
+import com.nchroniaris.ASC.client.exception.PropertiesNotFoundException;
+
 import java.io.*;
 import java.net.URLDecoder;
 import java.util.Properties;
@@ -88,8 +90,7 @@ public class ASCProperties {
 
         } catch (FileNotFoundException e) {
 
-            System.err.println("Properties file not found! Please run the initial setup first.");
-            System.exit(1);
+            throw new PropertiesNotFoundException("[CRITICAL] Properties file not found! Please run the initial setup first.");
 
         } catch (IOException e) {
 
