@@ -82,7 +82,7 @@ public class ASCProperties {
 
             properties.load(propertiesFile);
 
-            // Get all variables from the properties file. The reason for including
+            // Get all variables from the properties file. The reason for including the trim() is to make sure we are checking for potential null values. This will occur when a certain property does not exist in the property file. Since we call .replaceAll() on the path.db property, there is no reason to call .trim().
             PATH_DB = ASCProperties.PATH_WORKING_DIR + File.separator + properties.getProperty("path.db").replaceAll(String.format("^%s+", File.separator), "");
             PATH_SCREEN = properties.getProperty("path.screen").trim();
 
