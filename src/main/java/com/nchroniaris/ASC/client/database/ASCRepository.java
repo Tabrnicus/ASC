@@ -2,7 +2,7 @@ package com.nchroniaris.ASC.client.database;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.nchroniaris.ASC.client.core.ASCClient;
+import com.nchroniaris.ASC.client.core.ASCProperties;
 import com.nchroniaris.ASC.client.model.Event;
 import com.nchroniaris.ASC.client.model.EventFactory;
 import com.nchroniaris.ASC.util.model.GameServer;
@@ -20,10 +20,6 @@ public class ASCRepository {
 
     // Singleton implementation
     private static ASCRepository repository = null;
-
-    // Location of the database. Written as a combination of the actual path of the jar file and a relative path for which the DB should exist. For safety, we are using File.separator in order to grab the system separator chars ('/' on UNIX and '\' on Windows).
-    // TODO: 2020-07-21 Potentially move this to a configuration file rather than "hardcode" it
-    private static final String DBLocation = ASCClient.jarWorkingDir + File.separator + "resources" + File.separator + "ASC.sqlite3";
 
     // Generic error message for a SQLExceptionError
     private static final String SQLExceptionError = "[CRITICAL] There was an error communicating with the database! This is most likely due to an old version of the database, a corrupt database (no tables for where there should be one), or an empty database.";
@@ -55,13 +51,16 @@ public class ASCRepository {
      */
     private Connection connect() throws SQLException, FileNotFoundException {
 
+        // Get properties instance to access path variable
+        ASCProperties properties = ASCProperties.getInstance();
+
         // TODO: 2020-07-21 Proper Integrity check for DB
         // Check if the DB exists in the location specified. The reason that this is a separate check is that as far as I can tell, the default behaviour for the DriverManager.getConnection() method when ONLY the DB is missing (and NOT other folders in its path) is that it creates an empty DB which shouldn't technically be allowed. Therefore, if we don't do this check and you happen to delete the DB and run the program again, you will encounter other errors down the line since the schema would be empty. Obviously this is not a foolproof solution but it serves as an extra check
-        if (!new File(ASCRepository.DBLocation).exists())
-            throw new FileNotFoundException(String.format("[CRITICAL] Database file not found (%s)! Please generate it before running the base program.", ASCRepository.DBLocation));
+        if (!new File(properties.PATH_DB).exists())
+            throw new FileNotFoundException(String.format("[CRITICAL] Database file not found (%s)! Please generate it before running the base program.", properties.PATH_DB));
 
         // According to the sqlite tutorial for java, in order to use jdbc you must have the following string be prepended to the path.
-        return DriverManager.getConnection("jdbc:sqlite:" + ASCRepository.DBLocation);
+        return DriverManager.getConnection("jdbc:sqlite:" + properties.PATH_DB);
 
     }
 
@@ -160,7 +159,7 @@ public class ASCRepository {
 
                 } catch (JsonSyntaxException e) {
 
-                    System.err.println(String.format("There was an issue parsing Json data from the args field! Got (%s)", rs.getString("args")));
+                    System.err.printf("There was an issue parsing Json data from the args field! Got (%s)%n", rs.getString("args"));
                     e.printStackTrace();
                     System.exit(1);
 
