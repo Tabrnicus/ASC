@@ -1,29 +1,18 @@
 package com.nchroniaris.ASC.client.multiplexer;
 
-import com.nchroniaris.ASC.client.core.ASCProperties;
-import com.nchroniaris.ASC.client.exception.MultiplexerNotFoundException;
-
-import java.io.File;
 import java.io.IOException;
 
 /**
  * This is a concrete implementation of the TerminalMultiplexer interface. This class implements methods of interacting with the host OS's GNU screen implementation. Keep in mind that the path.screen property must be set to a VALID installation of GNU screen (not FAU or any others) or else some of these commands may not work.
  */
-public class ScreenMultiplexer implements TerminalMultiplexer {
-
-    private final String PATH_SCREEN;
+public class ScreenMultiplexer extends TerminalMultiplexer {
 
     /**
      * Creates a new ScreenMultiplexer() instance. Calling this constructor will check if the property value in ASCProperties.PATH_SCREEN leads to a valid executable (not necessarily a screen executable)
      */
-    public ScreenMultiplexer() {
+    public ScreenMultiplexer(String screenPath) {
 
-        ASCProperties properties = ASCProperties.getInstance();
-
-        this.PATH_SCREEN = properties.PATH_SCREEN;
-
-        if (!new File(this.PATH_SCREEN).exists())
-            throw new MultiplexerNotFoundException(String.format("The screen runtime specified in the properties file does not exist! Got \"%s\"", this.PATH_SCREEN));
+        super(screenPath);
 
     }
 
@@ -37,7 +26,7 @@ public class ScreenMultiplexer implements TerminalMultiplexer {
         ProcessBuilder builder = new ProcessBuilder();
 
         // Set up command. This uses screen and creates a detached session (-dm) whose window is adaptable (-A) with a session name (-S). It runs the executable in that screen session. Whether this executable works or not will not be reflected in this method call -- barring any issues that will be thrown as an IOException such as invalid run perms
-        builder.command(this.PATH_SCREEN, "-AdmS", sessionName, executable);
+        builder.command(super.PATH_EXECUTABLE, "-AdmS", sessionName, executable);
 
         // Attempt to run the command to start up a new session in screen with the executable. We don't care about the exit code (as in most cases the exit code of the SCREEN command is not representative of any actual errors created WITHIN the session), so we ignore the return value. Recall that this method blocks the calling thread until the command has completed execution.
         this.runProcess(builder);
@@ -55,7 +44,7 @@ public class ScreenMultiplexer implements TerminalMultiplexer {
         ProcessBuilder builder = new ProcessBuilder();
 
         // Set up command. I'll be honest here and say i really don't know why this behemoth of a screen command works. I ended up finding a working solution a long time ago after many hours of googling and trial and error.
-        builder.command(this.PATH_SCREEN, "-p0", "-S", sessionName, "-X", "exec", ".\\!\\!", "echo", command);
+        builder.command(super.PATH_EXECUTABLE, "-p0", "-S", sessionName, "-X", "exec", ".\\!\\!", "echo", command);
 
         // Attempt to run the command in a particular session. We don't care about the exit code (as in most cases the exit code of the SCREEN command is not representative of any actual errors created WITHIN the session), so we ignore the return value. Recall that this method blocks the calling thread until the command has completed execution.
         this.runProcess(builder);
@@ -73,7 +62,7 @@ public class ScreenMultiplexer implements TerminalMultiplexer {
         ProcessBuilder builder = new ProcessBuilder();
 
         // Set up command. This particular one queries the session with the specified name and tells it to select the current window. If this fails, we get a non-zero
-        builder.command(this.PATH_SCREEN, "-S", sessionName, "-Q", "select", ".");
+        builder.command(super.PATH_EXECUTABLE, "-S", sessionName, "-Q", "select", ".");
 
         // Attempt to run the command and get the return code which will tell us if the session exists or not. Recall that this method blocks the calling thread until the command has completed execution.
         int returnCode = this.runProcess(builder);

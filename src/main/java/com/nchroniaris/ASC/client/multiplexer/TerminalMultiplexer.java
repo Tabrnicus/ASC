@@ -1,9 +1,27 @@
 package com.nchroniaris.ASC.client.multiplexer;
 
+import com.nchroniaris.ASC.client.exception.MultiplexerNotFoundException;
+
+import java.io.File;
+
 /**
  * This interface defines the set of interactions that must be made for any terminal multiplexer. I've defined an interface early on to make it possible to extend the functionality to other terminal multiplexers (likely configurable)
  */
-public interface TerminalMultiplexer {
+public abstract class TerminalMultiplexer {
+
+    protected final String PATH_EXECUTABLE;
+
+    public TerminalMultiplexer(String executablePath) {
+
+        if (executablePath == null)
+            throw new IllegalArgumentException("The executablePath argument cannot be null!");
+
+        if (!new File(executablePath).exists())
+            throw new MultiplexerNotFoundException(String.format("The multiplexer runtime specified in the properties file does not exist! Got \"%s\"", executablePath));
+
+        this.PATH_EXECUTABLE = executablePath;
+
+    }
 
     /**
      * Starts a multiplexer session using a name and an executable
@@ -12,7 +30,7 @@ public interface TerminalMultiplexer {
      * @param executable  The program or script that is meant to be run within the session. Make sure this file exists or otherwise works, as each multiplexer need not capture errors from WITHIN a session.
      * @throws IllegalArgumentException If the session already exists, this exception will be thrown
      */
-    void startSession(String sessionName, String executable) throws IllegalArgumentException;
+    abstract void startSession(String sessionName, String executable) throws IllegalArgumentException;
 
     /**
      * Sends a command to a specific multiplexer session specified by the name. Commands will be run as is as specified by `command`
@@ -21,6 +39,6 @@ public interface TerminalMultiplexer {
      * @param command     The contents of the command to run inside the aforementioned session
      * @throws IllegalArgumentException If the session does NOT exist, this exception will be thrown
      */
-    void sendCommand(String sessionName, String command) throws IllegalArgumentException;
+    abstract void sendCommand(String sessionName, String command) throws IllegalArgumentException;
 
 }
