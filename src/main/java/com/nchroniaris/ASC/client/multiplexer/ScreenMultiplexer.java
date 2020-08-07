@@ -43,8 +43,9 @@ public class ScreenMultiplexer extends TerminalMultiplexer {
 
         ProcessBuilder builder = new ProcessBuilder();
 
-        // Set up command. I'll be honest here and say i really don't know why this behemoth of a screen command works. I ended up finding a working solution a long time ago after many hours of googling and trial and error.
-        builder.command(super.PATH_EXECUTABLE, "-p0", "-S", sessionName, "-X", "exec", ".\\!\\!", "echo", command);
+        // Set up command. The screen executable preselects the 0th window (-p0) of the session `sessionName` (-S) and sends the screen command (-X) "stuff" to the session which 'stuffs' the string `command + "^M" (enter key)` into the standard input of the application in the session.
+        // Adapted from https://raymii.org/s/snippets/Sending_commands_or_input_to_a_screen_session.html
+        builder.command(super.PATH_EXECUTABLE, "-p0", "-S", sessionName, "-X", "stuff", command + "^M");
 
         // Attempt to run the command in a particular session. We don't care about the exit code (as in most cases the exit code of the SCREEN command is not representative of any actual errors created WITHIN the session), so we ignore the return value. Recall that this method blocks the calling thread until the command has completed execution.
         this.runProcess(builder);
