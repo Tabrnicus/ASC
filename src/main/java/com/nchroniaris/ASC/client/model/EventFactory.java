@@ -1,5 +1,7 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.core.ASCProperties;
+import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.time.LocalTime;
@@ -23,27 +25,36 @@ public class EventFactory {
      */
     public static Event buildEvent(int eventType, GameServer server, LocalTime time, String[] args) throws UnsupportedOperationException, IllegalArgumentException {
 
-        if (server == null || time == null || args == null)
-            throw new IllegalArgumentException("The server, time, and args parameters should NOT be null! Please check the database for the event you are building, there might be a null value where there shouldn't be.");
+        if (server == null)
+            throw new IllegalArgumentException("The server argument should NOT be null! Please check the database for the event you are building, there might be a null value where there shouldn't be.");
+
+        else if (time == null)
+            throw new IllegalArgumentException("The time argument should NOT be null! Please check the database for the event you are building, there might be a null value where there shouldn't be.");
+
+        else if (args == null)
+            throw new IllegalArgumentException("The args argument should NOT be null! Please check the database for the event you are building, there might be a null value where there shouldn't be.");
+
+        // Get multiplexer from properties file which would have already been instantiated based on the configuration
+        TerminalMultiplexer multiplexer = ASCProperties.getInstance().MULTIPLEXER;
 
         try {
 
             switch (eventType) {
 
                 case 0:
-                    return new ExecuteFileEvent(server, time, args[0], Arrays.copyOfRange(args, 1, args.length));
+                    return new ExecuteFileEvent(multiplexer, server, time, args[0], Arrays.copyOfRange(args, 1, args.length));
 
                 case 1:
-                    return new StartServerEvent(server, time);
+                    return new StartServerEvent(multiplexer, server, time);
 
                 case 2:
-                    return new RunCommandEvent(server, time, args[0]);
+                    return new RunCommandEvent(multiplexer, server, time, args[0]);
 
                 case 3:
-                    return new StopCommandEvent(server, time);
+                    return new StopCommandEvent(multiplexer, server, time);
 
                 case 4:
-                    return new WarnCommandEvent(server, time, args[0]);
+                    return new WarnCommandEvent(multiplexer, server, time, args[0]);
 
                 default:
                     throw new UnsupportedOperationException(String.format("An event with the id (%d) does not exist! Consider rebuilding the database.", eventType));

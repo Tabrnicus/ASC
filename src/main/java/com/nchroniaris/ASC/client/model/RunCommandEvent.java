@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.time.LocalTime;
@@ -14,13 +15,14 @@ public class RunCommandEvent extends Event {
     /**
      * The main constructor for RunCommandEvent. As required by the superclass we must get a GameServer and a LocalTime. We additionally get a command to run in string form.
      *
+     * @param multiplexer    A TerminalMultiplexer object offered as dependency injection. This can be any one of the classes that implements this interface.
      * @param gameServer   A GameServer object that describes the particular details of the game server that the event belongs to.
      * @param time         A LocalTime object that describes the exact time of day that the event should run.
      * @param commandToRun A string that represents the particular command to run.
      */
-    public RunCommandEvent(GameServer gameServer, LocalTime time, String commandToRun) {
+    public RunCommandEvent(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time, String commandToRun) {
 
-        super(gameServer, time);
+        super(multiplexer, gameServer, time);
 
         // This is to elegantly handle the case for which the command is null or if the command is empty.
         if (commandToRun == null || commandToRun.equals(""))
@@ -33,12 +35,13 @@ public class RunCommandEvent extends Event {
     /**
      * This is an extra constructor meant for subclasses that do not have a command to specify upon instantiation. Using this implies that the subclass will override assembleCommand().
      *
+     * @param multiplexer    A TerminalMultiplexer object offered as dependency injection. This can be any one of the classes that implements this interface.
      * @param gameServer A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
      * @param time       A LocalTime object that describes the exact time of day that the event should run.
      */
-    protected RunCommandEvent(GameServer gameServer, LocalTime time) {
+    protected RunCommandEvent(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time) {
 
-        super(gameServer, time);
+        super(multiplexer, gameServer, time);
 
         commandToRun = null;
 

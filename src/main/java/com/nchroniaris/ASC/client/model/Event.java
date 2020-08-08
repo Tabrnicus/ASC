@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.time.LocalTime;
@@ -9,7 +10,7 @@ import java.time.LocalTime;
  */
 public abstract class Event implements Runnable {
 
-    // TODO: 2020-07-22 perhaps change LocalTime to LocalDateTime
+    protected final TerminalMultiplexer multiplexer;
     protected final GameServer gameServer;
     protected final LocalTime time;
 
@@ -19,11 +20,18 @@ public abstract class Event implements Runnable {
      * @param gameServer A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
      * @param time       A LocalTime object that describes the exact time of day that the event should run.
      */
-    protected Event(GameServer gameServer, LocalTime time) {
+    protected Event(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time) {
 
-        if (gameServer == null || time == null)
-            throw new IllegalArgumentException("Both gameServer and time should NOT be null!");
+        if (multiplexer == null)
+            throw new IllegalArgumentException("The multiplexer argument should NOT be null!");
 
+        if (gameServer == null)
+            throw new IllegalArgumentException("The gameServer argument should NOT be null!");
+
+        if (time == null)
+            throw new IllegalArgumentException("The time argument should NOT be null!");
+
+        this.multiplexer = multiplexer;
         this.gameServer = gameServer;
         this.time = time;
 

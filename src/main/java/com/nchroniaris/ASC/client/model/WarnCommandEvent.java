@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.time.LocalTime;
@@ -13,14 +14,14 @@ public class WarnCommandEvent extends RunCommandEvent {
 
     /**
      * Since the warn command is known ahead of time, the only thing that needs to be specified during instantiation is the number of minutes left until server shutdown.
-     *
+     * @param multiplexer    A TerminalMultiplexer object offered as dependency injection. This can be any one of the classes that implements this interface.
      * @param gameServer          A GameServer object that describes the particular details of the game server that the event belongs to.
      * @param time                A LocalTime object that describes the exact time of day that the event should run.
      * @param timeIntervalMinutes A string representation of the number of minutes left. This will replace every occurrence of $TIME in the warn command with this exact string.
      */
-    public WarnCommandEvent(GameServer gameServer, LocalTime time, String timeIntervalMinutes) {
+    public WarnCommandEvent(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time, String timeIntervalMinutes) {
 
-        super(gameServer, time);
+        super(multiplexer, gameServer, time);
 
         if (timeIntervalMinutes == null || timeIntervalMinutes.equals(""))
             throw new IllegalArgumentException("timeInterval cannot be null or empty!");
