@@ -91,6 +91,9 @@ public class ScreenMultiplexer extends TerminalMultiplexer {
             // Blocks the executing thread and eventually returns the exit code of the process.
             returnCode = process.waitFor();
 
+            // I am inserting this artificial delay in order to deal with some weirdness with screen when two screen commands are run very close to each other in terms of time. Given the scale of the project's usage, this should really not impact much in the long run. The only thing is that clusters of commands may run a bit slower.
+            Thread.sleep(1000);
+
         } catch (IOException e) {
 
             System.err.println("Some sort of error occurred while trying to execute the process!");
