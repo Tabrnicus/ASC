@@ -1,5 +1,8 @@
 package com.nchroniaris.ASC.client.multiplexer;
 
+import com.nchroniaris.ASC.client.exception.SessionDoesNotExistException;
+import com.nchroniaris.ASC.client.exception.SessionExistsException;
+
 import java.io.IOException;
 
 /**
@@ -17,11 +20,11 @@ public class ScreenMultiplexer extends TerminalMultiplexer {
     }
 
     @Override
-    public void startSession(String sessionName, String executable) throws IllegalArgumentException {
+    public void startSession(String sessionName, String executable) throws SessionExistsException {
 
         // If the session by the same name ALREADY exists, it makes no sense to make a new one. Therefore we throw an error.
         if (this.sessionExists(sessionName))
-            throw new IllegalArgumentException(String.format("Screen session '%s' exists already! Please make sure to exit this session properly before starting a new one!", sessionName));
+            throw new SessionExistsException(String.format("Screen session '%s' exists already! Please make sure to exit this session properly before starting a new one!", sessionName));
 
         ProcessBuilder builder = new ProcessBuilder();
 
@@ -34,12 +37,11 @@ public class ScreenMultiplexer extends TerminalMultiplexer {
     }
 
     @Override
-    public void sendCommand(String sessionName, String command) throws IllegalArgumentException {
+    public void sendCommand(String sessionName, String command) throws SessionDoesNotExistException {
 
         // If the session by the same name DOES NOT exist, it makes no sense to send a command to a non existent session. Therefore we throw an error.
-        if (!this.sessionExists(sessionName)) {
-            throw new IllegalArgumentException(String.format("Screen session '%s' does NOT exist! Please make sure to start this session before sending any commands to it!", sessionName));
-        }
+        if (!this.sessionExists(sessionName))
+            throw new SessionDoesNotExistException(String.format("Screen session '%s' does NOT exist! Please make sure to start this session before sending any commands to it!", sessionName));
 
         ProcessBuilder builder = new ProcessBuilder();
 

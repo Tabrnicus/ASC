@@ -1,6 +1,8 @@
 package com.nchroniaris.ASC.client.multiplexer;
 
 import com.nchroniaris.ASC.client.exception.MultiplexerNotFoundException;
+import com.nchroniaris.ASC.client.exception.SessionDoesNotExistException;
+import com.nchroniaris.ASC.client.exception.SessionExistsException;
 
 import java.io.File;
 
@@ -28,17 +30,17 @@ public abstract class TerminalMultiplexer {
      *
      * @param sessionName The name of the session. This will be used to refer to the session on subsequent calls and used outside of this program to access the executable's standard input and output.
      * @param executable  The program or script that is meant to be run within the session. Make sure this file exists or otherwise works, as each multiplexer need not capture errors from WITHIN a session.
-     * @throws IllegalArgumentException If the session already exists, this exception will be thrown
+     * @throws SessionExistsException If the session already exists, this exception will be thrown
      */
-    public abstract void startSession(String sessionName, String executable) throws IllegalArgumentException;
+    public abstract void startSession(String sessionName, String executable) throws SessionExistsException;
 
     /**
      * Sends a command to a specific multiplexer session specified by the name. Commands will be run as is as specified by `command`
      *
      * @param sessionName The name of the session. This will be used to direct the command to a specific session.
      * @param command     The contents of the command to run inside the aforementioned session
-     * @throws IllegalArgumentException If the session does NOT exist, this exception will be thrown
+     * @throws SessionDoesNotExistException If the session does NOT exist, this exception will be thrown
      */
-    public abstract void sendCommand(String sessionName, String command) throws IllegalArgumentException;
+    public abstract void sendCommand(String sessionName, String command) throws SessionDoesNotExistException;
 
 }
