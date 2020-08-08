@@ -58,7 +58,7 @@ public class RunCommandEvent extends Event {
             throw new IllegalArgumentException("The command cannot be empty or null!");
 
         // Debug
-        System.out.println(String.format("pretend we are running the command (%s), at (%s), with the game-moniker combo (%s_%s)", command, time.toString(), super.gameServer.getGame(), super.gameServer.getMoniker()));
+        System.out.printf("pretend we are running the command (%s), at (%s), with the game-moniker combo (%s)%n", command, time.toString(), super.gameServer.getSessionName());
 
     }
 

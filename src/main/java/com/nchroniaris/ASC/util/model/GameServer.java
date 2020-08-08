@@ -5,11 +5,13 @@ package com.nchroniaris.ASC.util.model;
  */
 public class GameServer {
 
+    // This should match any string that is alphanumeric (lowercase) with any number of optional dashes. The + means at least one character should be there. This regex is used for matching both the game and the moniker *seperately*
+    public static final String sessionRegex = "^[a-z0-9\\-]+$";
+
     private final int sid;
 
     private final String description;
-    private final String game;
-    private final String moniker;
+    private final String sessionName;
 
     private final String startFile;
     private final String stopCommand;
@@ -31,12 +33,19 @@ public class GameServer {
         if (game == null)
             throw new IllegalArgumentException("Game field cannot be null!");
 
-        this.game = game;
+        // We won't accept any string with malformed syntax into this system so we raise an error
+        if (!game.matches(GameServer.sessionRegex))
+            throw new IllegalArgumentException(String.format("Game field must be at least one lowercase alphanumeric character with any number of optional dashes. Got '%s'", game));
 
         if (moniker == null)
             throw new IllegalArgumentException("Moniker field cannot be null!");
 
-        this.moniker = moniker;
+        // We won't accept any string with malformed syntax into this system so we raise an error
+        if (!moniker.matches(GameServer.sessionRegex))
+            throw new IllegalArgumentException(String.format("Moniker field must be at least one lowercase alphanumeric character with any number of optional dashes. Got '%s'", moniker));
+
+        // Assemble moniker string
+        this.sessionName = game + "_" + moniker;
 
         if (startFile == null)
             throw new IllegalArgumentException("Start File field cannot be null!");
@@ -69,12 +78,8 @@ public class GameServer {
         return description;
     }
 
-    public String getGame() {
-        return game;
-    }
-
-    public String getMoniker() {
-        return moniker;
+    public String getSessionName() {
+        return sessionName;
     }
 
     public String getStartFile() {

@@ -44,7 +44,7 @@ public class ExecuteFileEvent extends Event {
     public void run() {
 
         // Debug
-        System.out.println(String.format("pretend we are running the file (%s) at (%s) with the game-moniker combo (%s_%s) with additional args (%s)", this.executablePath, time.toString(), super.gameServer.getGame(), super.gameServer.getMoniker(), Arrays.toString(this.additionalArgs)));
+        System.out.printf("pretend we are running the file (%s) at (%s) with the game-moniker combo (%s) with additional args (%s)%n", this.executablePath, time.toString(), super.gameServer.getSessionName(), Arrays.toString(this.additionalArgs));
 
     }
 
