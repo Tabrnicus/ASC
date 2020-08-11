@@ -10,6 +10,8 @@ import java.time.LocalTime;
  */
 public class WarnCommandEvent extends RunCommandEvent {
 
+    public static final String REPLACE_STRING = "$TIME";
+
     private final String timeIntervalMinutes;
 
     /**
@@ -38,7 +40,7 @@ public class WarnCommandEvent extends RunCommandEvent {
     @Override
     protected String assembleCommand() {
 
-        return gameServer.getWarnCommand().replace("$TIME", this.timeIntervalMinutes);
+        return gameServer.getWarnCommand().replace(WarnCommandEvent.REPLACE_STRING, this.timeIntervalMinutes);
 
     }
 
