@@ -16,7 +16,7 @@ public class ExecuteFileEvent extends Event {
     private final String[] additionalArgs;
 
     /**
-     * The main constructor for ExecuteFileEvent. As required by the superclass we must get a GameServer and a LocalTime. We additionally get a file to run and any number of additional arguments
+     * The main constructor for ExecuteFileEvent. As required by the superclass we must get a GameServer and a LocalTime. We additionally get an executable to run and any number of additional arguments
      *
      * @param multiplexer    A TerminalMultiplexer object offered as dependency injection. This can be any one of the classes that implements this interface.
      * @param gameServer     A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
@@ -34,9 +34,26 @@ public class ExecuteFileEvent extends Event {
         this.executablePath = executablePath;
 
         if (additionalArgs == null)
-            throw new IllegalArgumentException("Additional arguments cannot be null! If you don't want to add any additional arguments, initialize an empty string list.");
+            throw new IllegalArgumentException("Additional arguments cannot be null! If you don't want to add any additional arguments, use the other constructor");
 
         this.additionalArgs = additionalArgs;
+
+    }
+
+    /**
+     * The main constructor for ExecuteFileEvent. As required by the superclass we must get a GameServer and a LocalTime. We additionally get an executable to run.
+     *
+     * @param multiplexer    A TerminalMultiplexer object offered as dependency injection. This can be any one of the classes that implements this interface.
+     * @param gameServer     A GameServer object that describes the particular details of the game server that the event belongs to. Many of the attributes of this object are useful for subclasses of `Event`.
+     * @param time           A LocalTime object that describes the exact time of day that the event should run.
+     * @param executablePath A valid path to an executable file. Existence of the file is checked upon instantiation and can result in an error so make sure it exists.
+     */
+    public ExecuteFileEvent(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time, String executablePath) {
+
+        super(multiplexer, gameServer, time);
+
+        this.executablePath = executablePath;
+        this.additionalArgs = new String[]{};
 
     }
 

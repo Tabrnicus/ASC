@@ -18,7 +18,7 @@ public class StartServerEvent extends ExecuteFileEvent {
      */
     public StartServerEvent(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time) {
 
-        super(multiplexer, gameServer, time, gameServer.getStartFile(), new String[] {});
+        super(multiplexer, gameServer, time, gameServer.getStartFile());
 
     }
 

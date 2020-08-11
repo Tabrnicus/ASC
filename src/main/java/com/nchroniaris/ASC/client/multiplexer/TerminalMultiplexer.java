@@ -28,6 +28,16 @@ public abstract class TerminalMultiplexer {
     /**
      * Starts a multiplexer session using a name and an executable
      *
+     * @param sessionName    The name of the session. This will be used to refer to the session on subsequent calls and used outside of this program to access the executable's standard input and output.
+     * @param executable     The program or script that is meant to be run within the session. Make sure this file exists or otherwise works, as each multiplexer need not capture errors from WITHIN a session.
+     * @param additionalArgs Any additional arguments to be passed to the executable program.
+     * @throws SessionExistsException If the session already exists, this exception will be thrown
+     */
+    public abstract void startSession(String sessionName, String executable, String[] additionalArgs) throws SessionExistsException;
+
+    /**
+     * Starts a multiplexer session using a name and an executable
+     *
      * @param sessionName The name of the session. This will be used to refer to the session on subsequent calls and used outside of this program to access the executable's standard input and output.
      * @param executable  The program or script that is meant to be run within the session. Make sure this file exists or otherwise works, as each multiplexer need not capture errors from WITHIN a session.
      * @throws SessionExistsException If the session already exists, this exception will be thrown

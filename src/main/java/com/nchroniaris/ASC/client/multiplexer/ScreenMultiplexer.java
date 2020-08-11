@@ -4,6 +4,9 @@ import com.nchroniaris.ASC.client.exception.SessionDoesNotExistException;
 import com.nchroniaris.ASC.client.exception.SessionExistsException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * This is a concrete implementation of the TerminalMultiplexer interface. This class implements methods of interacting with the host OS's GNU screen implementation. Keep in mind that the path.screen property must be set to a VALID installation of GNU screen (not FAU or any others) or else some of these commands may not work.
@@ -20,19 +23,39 @@ public class ScreenMultiplexer extends TerminalMultiplexer {
     }
 
     @Override
-    public void startSession(String sessionName, String executable) throws SessionExistsException {
+    public void startSession(String sessionName, String executable, String[] additionalArgs) throws SessionExistsException {
+
+        // additionalArgs cannot be null because of the .addAll() call later
+        if (additionalArgs == null)
+            throw new IllegalArgumentException("The additionalArgs argument cannot be null!");
 
         // If the session by the same name ALREADY exists, it makes no sense to make a new one. Therefore we throw an error.
         if (this.sessionExists(sessionName))
             throw new SessionExistsException(String.format("Screen session '%s' exists already! Please make sure to exit this session properly before starting a new one!", sessionName));
 
+        // Build command by adding all the required commands, flags, and finally additional arguments
+        List<String> command = new ArrayList<>();
+
+        command.add(super.PATH_EXECUTABLE);
+        command.add("-AdmS");
+        command.add(sessionName);
+        command.add(executable);
+        command.addAll(Arrays.asList(additionalArgs));
+
         ProcessBuilder builder = new ProcessBuilder();
 
-        // Set up command. This uses screen and creates a detached session (-dm) whose window is adaptable (-A) with a session name (-S). It runs the executable in that screen session. Whether this executable works or not will not be reflected in this method call -- barring any issues that will be thrown as an IOException such as invalid run perms
-        builder.command(super.PATH_EXECUTABLE, "-AdmS", sessionName, executable);
+        // Set up command. This uses screen and creates a detached session (-dm) whose window is adaptable (-A) with a session name (-S). It runs the executable in that screen session with any number (0 or more) additional arguments. Whether this executable works or not will not be reflected in this method call -- barring any issues that will be thrown as an IOException such as invalid run perms
+        builder.command(command);
 
         // Attempt to run the command to start up a new session in screen with the executable. We don't care about the exit code (as in most cases the exit code of the SCREEN command is not representative of any actual errors created WITHIN the session), so we ignore the return value. Recall that this method blocks the calling thread until the command has completed execution.
         this.runProcess(builder);
+
+    }
+
+    @Override
+    public void startSession(String sessionName, String executable) throws SessionExistsException {
+
+        this.startSession(sessionName, executable, new String[]{});
 
     }
 
@@ -76,6 +99,7 @@ public class ScreenMultiplexer extends TerminalMultiplexer {
 
     /**
      * This is a generic method to handle running a command created by a ProcessBuilder. This method as a result doesn't care what the contents of the command are, as its only function is to run it and handle its exceptions
+     *
      * @param builder The ProcessBuilder created by calling ProcessBuilder.command().
      * @return The exit code of the process running the command. This may or may not be useful to the caller.
      */
