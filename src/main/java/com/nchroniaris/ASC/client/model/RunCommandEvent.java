@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.exception.SessionDoesNotExistException;
 import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
 
@@ -25,8 +26,11 @@ public class RunCommandEvent extends Event {
         super(multiplexer, gameServer, time);
 
         // This is to elegantly handle the case for which the command is null or if the command is empty.
-        if (commandToRun == null || commandToRun.equals(""))
-            throw new IllegalArgumentException("The command cannot be empty or null!");
+        if (commandToRun == null)
+            throw new IllegalArgumentException("The command cannot be null! If you are extending this class, make sure to override assembleCommand()!");
+
+        if (commandToRun.equals(""))
+            throw new IllegalArgumentException("The command cannot be empty!");
 
         this.commandToRun = commandToRun;
 
@@ -43,22 +47,7 @@ public class RunCommandEvent extends Event {
 
         super(multiplexer, gameServer, time);
 
-        commandToRun = null;
-
-    }
-
-    @Override
-    public final void run() {
-
-        // Implementation of the Template pattern. In this case run() is the overarching algorithm and assembleCommand() is the
-        String command = this.assembleCommand();
-
-        // This check is for extra safety. If it is the case that a new subclass is created and does NOT override the default assembleCommand() behaviour, it can happen that we end up with a null or an empty string here. This can also happen if the subclass does not provide any actual command in assembleCommand().
-        if (command == null || command.equals(""))
-            throw new IllegalArgumentException("The command cannot be empty or null!");
-
-        // Debug
-        System.out.printf("pretend we are running the command (%s), at (%s), with the game-moniker combo (%s)%n", command, time.toString(), super.gameServer.getSessionName());
+        this.commandToRun = null;
 
     }
 
@@ -70,6 +59,30 @@ public class RunCommandEvent extends Event {
     protected String assembleCommand() {
 
         return this.commandToRun;
+
+    }
+
+    @Override
+    public final void run() {
+
+        // Implementation of the Template pattern. In this case run() is the overarching algorithm and assembleCommand() is the swappable step.
+        String command = this.assembleCommand();
+
+        // This check is for extra safety. If it is the case that a new subclass is created and does NOT override the default assembleCommand() behaviour, it can happen that we end up with a null or an empty string here. This can also happen if the subclass does not provide any actual command in assembleCommand().
+        if (command == null || command.equals(""))
+            throw new IllegalArgumentException("The command cannot be empty or null!");
+
+        try {
+
+            // Use the multiplexer to send a command to a session using the command
+            super.multiplexer.sendCommand(super.gameServer.getSessionName(), command);
+
+        } catch (SessionDoesNotExistException e) {
+
+            // TODO: 2020-08-10 Write this event to a log file
+            System.err.printf("[WARNING] The session %s is not active! The command was NOT sent to the session.", super.gameServer.getSessionName());
+
+        }
 
     }
 

@@ -1,11 +1,11 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.exception.SessionExistsException;
 import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
 
 import java.io.File;
 import java.time.LocalTime;
-import java.util.Arrays;
 
 /**
  * A concrete subclass of Event. This particular event executes a file that is specified in its constructor.
@@ -60,8 +60,17 @@ public class ExecuteFileEvent extends Event {
     @Override
     public void run() {
 
-        // Debug
-        System.out.printf("pretend we are running the file (%s) at (%s) with the game-moniker combo (%s) with additional args (%s)%n", this.executablePath, time.toString(), super.gameServer.getSessionName(), Arrays.toString(this.additionalArgs));
+        try {
+
+            // Use the multiplexer to start a session using the executable and any additional args. Keep in mind that additionalArgs can be empty, but not null. This is enforced in startSession().
+            super.multiplexer.startSession(super.gameServer.getSessionName(), this.executablePath, this.additionalArgs);
+
+        } catch (SessionExistsException e) {
+
+            // TODO: 2020-08-10 Write this event to a log file
+            System.err.printf("[WARNING] The session %s is already active! The session was NOT started.", super.gameServer.getSessionName());
+
+        }
 
     }
 
