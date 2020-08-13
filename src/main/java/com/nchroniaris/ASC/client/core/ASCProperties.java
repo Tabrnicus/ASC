@@ -4,6 +4,7 @@ import com.nchroniaris.ASC.client.exception.PropertiesNotFoundException;
 import com.nchroniaris.ASC.client.exception.PropertyNotSetException;
 import com.nchroniaris.ASC.client.multiplexer.ScreenMultiplexer;
 import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
+import com.nchroniaris.ASC.util.logger.ASCLogger;
 
 import java.io.*;
 import java.net.URLDecoder;
@@ -20,6 +21,7 @@ public class ASCProperties {
     // These are the String representations of the property names in the preferences file. Changes to property names will occur here.
     private static final String PROPERTY_PATH_SCREEN = "path.screen";
     private static final String PROPERTY_PATH_DB = "path.db";
+    private static final String PROPERTY_LOG = "path.log";
     private static final String PROPERTY_MULTIPLEXER = "multiplexer";
 
     // This attribute holds the absolute path for the directory that contains the jar file.
@@ -33,6 +35,7 @@ public class ASCProperties {
     // These are public because they are declared final. The `PATH_...` variables are absolute paths that are meant to be in accordance with the ASC.properties file.
     public final String PATH_DB;
     public final TerminalMultiplexer MULTIPLEXER;
+    public final ASCLogger LOGGER;
 
     /**
      * This gets the instance of the class as it is implemented as a singleton.
@@ -86,21 +89,20 @@ public class ASCProperties {
         // Since the instance variables are final, we must do this rigamarole to avoid a compiler error. In reality, any of these variables will NEVER be null as upon catching an exception we will exit.
         String PATH_DB = null;
         TerminalMultiplexer MULTIPLEXER = null;
+        ASCLogger LOGGER = null;
 
         // Open the properties file as a FileInputStream using a try-with-resources block and load the properties file and all relevant keys
         try (FileInputStream propertiesFile = new FileInputStream(ASCProperties.PATH_PROPERTIES)) {
 
             properties.load(propertiesFile);
 
-            // Get all variables from the properties file. The reason for including the trim() is to make sure we are checking for potential null values. This will occur when a certain property does not exist in the property file. Since we call .replaceAll() on the path.db property, there is no reason to call .trim().
-
-
+            // Get all variables from the properties file. Note that a NullPointerException will occur if any of the properties are not found (mostly via the call to resolvePath()). Specifically, this will occur when a certain property does not exist in the property file.
             PATH_DB = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_PATH_DB));
 
             // These variables are local, and it will not be converted to an instance variable
             String mpType = properties.getProperty(ASCProperties.PROPERTY_MULTIPLEXER);
-
             String pathScreen = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_PATH_SCREEN));
+            String pathLog = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_LOG));
 
             // Figure out what multiplexer the user wants to use and instantiate the right one. This switch statement is shallow but that is because I am only supporting screen at the moment.
             // switch(null) will fail in the case that the property is not set, which will produce a NullPointerException.
@@ -114,6 +116,9 @@ public class ASCProperties {
                     throw new UnsupportedOperationException(String.format("[CRITICAL] The current multiplexer type set in the properties file is not supported at the moment (Got '%s'). Please specify a valid multiplexer type.", mpType));
 
             }
+
+            // Construct logger using the resolved path from above
+            LOGGER = new ASCLogger(pathLog);
 
         } catch (FileNotFoundException e) {
 
@@ -139,6 +144,7 @@ public class ASCProperties {
 
         this.PATH_DB = PATH_DB;
         this.MULTIPLEXER = MULTIPLEXER;
+        this.LOGGER = LOGGER;
 
     }
 
