@@ -16,6 +16,11 @@ public class ASCProperties {
     // Lazy style Singleton implementation
     private static ASCProperties properties = null;
 
+    // These are the String representations of the property names in the preferences file. Changes to property names will occur here.
+    private static final String PROPERTY_PATH_SCREEN = "path.screen";
+    private static final String PROPERTY_PATH_DB = "path.db";
+    private static final String PROPERTY_MULTIPLEXER = "multiplexer";
+
     // This attribute holds the absolute path for the directory that contains the jar file.
     // I am aware doing this might be a bit awkward, but the specific way I have thought this application out is in such a way that it is meant to be "portable". Therefore, I would prefer if all relevant files that are core to the application reside in some sort of directory relative to the jar file. This also comes with the benefit of not having to make sure that the working directory is the same as the directory where the jar resides, as ALL files will be relative to THIS path instead of relative to the working dir.
     // Of course, this approach is done in favor of creating a configuration file in the **home directory** for example, which would house a "main directory" property of some sort which would avoid such black magic as shown in the function.
@@ -87,11 +92,11 @@ public class ASCProperties {
             properties.load(propertiesFile);
 
             // Get all variables from the properties file. The reason for including the trim() is to make sure we are checking for potential null values. This will occur when a certain property does not exist in the property file. Since we call .replaceAll() on the path.db property, there is no reason to call .trim().
-            PATH_DB = ASCProperties.PATH_WORKING_DIR + File.separator + properties.getProperty("path.db").replaceAll(String.format("^%s+", File.separator), "");
+            PATH_DB = ASCProperties.PATH_WORKING_DIR + File.separator + properties.getProperty(ASCProperties.PROPERTY_PATH_DB).replaceAll(String.format("^%s+", File.separator), "");
 
             // These variables are local, and it will not be converted to an instance variable
-            String pathScreen = properties.getProperty("path.screen").trim();
-            String mpType = properties.getProperty("multiplexer");
+            String pathScreen = properties.getProperty(ASCProperties.PROPERTY_PATH_SCREEN).trim();
+            String mpType = properties.getProperty(ASCProperties.PROPERTY_MULTIPLEXER);
 
             // Figure out what multiplexer the user wants to use and instantiate the right one. This switch statement is shallow but that is because I am only supporting screen at the moment.
             // switch(null) will fail in the case that the property is not set, which will produce a NullPointerException.
