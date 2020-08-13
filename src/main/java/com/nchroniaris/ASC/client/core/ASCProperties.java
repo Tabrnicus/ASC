@@ -1,6 +1,7 @@
 package com.nchroniaris.ASC.client.core;
 
 import com.nchroniaris.ASC.client.exception.PropertiesNotFoundException;
+import com.nchroniaris.ASC.client.exception.PropertyNotSetException;
 import com.nchroniaris.ASC.client.multiplexer.ScreenMultiplexer;
 import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 
@@ -92,11 +93,14 @@ public class ASCProperties {
             properties.load(propertiesFile);
 
             // Get all variables from the properties file. The reason for including the trim() is to make sure we are checking for potential null values. This will occur when a certain property does not exist in the property file. Since we call .replaceAll() on the path.db property, there is no reason to call .trim().
-            PATH_DB = ASCProperties.PATH_WORKING_DIR + File.separator + properties.getProperty(ASCProperties.PROPERTY_PATH_DB).replaceAll(String.format("^%s+", File.separator), "");
+
+
+            PATH_DB = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_PATH_DB));
 
             // These variables are local, and it will not be converted to an instance variable
-            String pathScreen = properties.getProperty(ASCProperties.PROPERTY_PATH_SCREEN).trim();
             String mpType = properties.getProperty(ASCProperties.PROPERTY_MULTIPLEXER);
+
+            String pathScreen = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_PATH_SCREEN));
 
             // Figure out what multiplexer the user wants to use and instantiate the right one. This switch statement is shallow but that is because I am only supporting screen at the moment.
             // switch(null) will fail in the case that the property is not set, which will produce a NullPointerException.
@@ -126,10 +130,41 @@ public class ASCProperties {
             System.err.println("[CRITICAL] One or more of the properties does not exist or is commented out! Please run initial setup to rebuild the properties file.");
             System.exit(1);
 
+        } catch (PropertyNotSetException e) {
+
+            System.err.println("[CRITICAL] One or more of the mandatory properties are empty! Please set them or regenerate the properties file.");
+            System.exit(1);
+
         }
 
         this.PATH_DB = PATH_DB;
         this.MULTIPLEXER = MULTIPLEXER;
+
+    }
+
+    /**
+     * This method takes a path (relative or absolute) taken from the properties file as input and forces it to be absolute. Relative paths are resolved in reference to the working dir of the jar file. Therefore, the relative path 'resources/ASC.log' will resolve to something like '/path/to/jar/dir/resources/ASC.log'
+     *
+     * @param path An absolute or relative file path to something.
+     * @return `path`, but resolved to be absolute
+     * @throws NullPointerException    This is thrown if `path` is null.
+     * @throws PropertyNotSetException This is thrown if `path` is an empty String.
+     */
+    private String resolvePath(String path) throws NullPointerException, PropertyNotSetException {
+
+        // Throwing a NullPointerException will make sure the correct case gets caught in the enclosing try block that this is called from.
+        if (path == null)
+            throw new NullPointerException();
+
+        // In this case we are raising a custom exception to indicate the absence of a mandatory property.
+        if (path.isEmpty())
+            throw new PropertyNotSetException();
+
+        // If the path has a single slash in front of it it means it's an absolute path. If this is not the case, we interpret it as a relative path starting from the jar file downwards.
+        if (path.charAt(0) == File.separatorChar)
+            return path;
+        else
+            return ASCProperties.PATH_WORKING_DIR + File.separator + path;
 
     }
 
