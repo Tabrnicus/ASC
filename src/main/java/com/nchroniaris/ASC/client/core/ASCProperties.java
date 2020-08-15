@@ -29,8 +29,11 @@ public class ASCProperties {
     // Of course, this approach is done in favor of creating a configuration file in the **home directory** for example, which would house a "main directory" property of some sort which would avoid such black magic as shown in the function.
     private static final String PATH_WORKING_DIR = ASCProperties.findJarWorkingDir();
 
-    // Location of the properties file. Written as a combination of the actual path of the jar file and a relative path for which the file should exist. For safety, we are using File.separator in order to grab the system separator chars ('/' on UNIX and '\' on Windows).
-    private static final String PATH_PROPERTIES = ASCProperties.PATH_WORKING_DIR + File.separator + "resources" + File.separator + "ASC.properties";
+    // Full path to the resources directory
+    private static final String PATH_RESOURCES_DIR = ASCProperties.PATH_WORKING_DIR + File.separator + "resources";
+
+    // Full path to the properties file. Written as a combination of the actual path of the jar file and a relative path for which the file should exist. For safety, we are using File.separator in order to grab the system separator chars ('/' on UNIX and '\' on Windows).
+    private static final String PATH_PROPERTIES = ASCProperties.PATH_RESOURCES_DIR + File.separator + "ASC.properties";
 
     // These are public because they are declared final. The `PATH_...` variables are absolute paths that are meant to be in accordance with the ASC.properties file.
     public final String PATH_DB;
@@ -76,6 +79,46 @@ public class ASCProperties {
         }
 
         return dir;
+
+    }
+
+    /**
+     * This static method creates a new properties file at the default location filled in with all the default values.
+     */
+    public static void generateNewFile() {
+
+        Properties properties = new Properties();
+
+        // Set all the properties to default values. We set path.screen to an empty string as we don't want to make any assumptions about the user's system.
+        properties.setProperty(ASCProperties.PROPERTY_PATH_SCREEN, "");
+        properties.setProperty(ASCProperties.PROPERTY_PATH_DB, "resources/ASC.sqlite3");
+        properties.setProperty(ASCProperties.PROPERTY_PATH_LOG, "resources/ASC.log");
+        properties.setProperty(ASCProperties.PROPERTY_MULTIPLEXER, "screen");
+
+        File dirResources = new File(ASCProperties.PATH_RESOURCES_DIR);
+
+        // If the directory does not exist, make the directory -- but if the return value of mkdir() is false then print an error and exit
+        if (!dirResources.exists()) {
+            if (!dirResources.mkdir()) {
+
+                System.err.println("The 'resources' directory could not be created!");
+                System.exit(1);
+
+            }
+        }
+
+        // Save the properties created above to the file specified in the static properties
+        try (FileOutputStream propertiesFile = new FileOutputStream(ASCProperties.PATH_PROPERTIES)) {
+
+            properties.store(propertiesFile, "ASC Preferences File");
+
+        } catch (IOException e) {
+
+            System.err.println("[CRITICAL] There was an issue saving the properties file!");
+            e.printStackTrace();
+            System.exit(1);
+
+        }
 
     }
 
@@ -173,7 +216,5 @@ public class ASCProperties {
             return ASCProperties.PATH_WORKING_DIR + File.separator + path;
 
     }
-
-    // TODO: 2020-08-05 Method to generate a default properties file
 
 }
