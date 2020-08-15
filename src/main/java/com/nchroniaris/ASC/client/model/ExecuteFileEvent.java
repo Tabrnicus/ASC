@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.core.ASCProperties;
 import com.nchroniaris.ASC.client.exception.SessionExistsException;
 import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
@@ -58,17 +59,22 @@ public class ExecuteFileEvent extends Event {
     }
 
     @Override
+    protected String eventString() {
+        return "Execute (Generic) File";
+    }
+
+    @Override
     public void run() {
 
         try {
 
             // Use the multiplexer to start a session using the executable and any additional args. Keep in mind that additionalArgs can be empty, but not null. This is enforced in startSession().
             super.multiplexer.startSession(super.gameServer.getSessionName(), this.executablePath, this.additionalArgs);
+            ASCProperties.getInstance().LOGGER.logInfo(String.format("Event [%s] - Session '%s' started.", this.eventString(), super.gameServer.getSessionName()));
 
         } catch (SessionExistsException e) {
 
-            // TODO: 2020-08-10 Write this event to a log file
-            System.err.printf("[WARNING] The session %s is already active! The session was NOT started.", super.gameServer.getSessionName());
+            ASCProperties.getInstance().LOGGER.logWarning(String.format("Event [%s] - The session '%s' was not started because it is already active!", this.eventString(), super.gameServer.getSessionName()));
 
         }
 

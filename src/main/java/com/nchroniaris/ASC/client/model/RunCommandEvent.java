@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.model;
 
+import com.nchroniaris.ASC.client.core.ASCProperties;
 import com.nchroniaris.ASC.client.exception.SessionDoesNotExistException;
 import com.nchroniaris.ASC.client.multiplexer.TerminalMultiplexer;
 import com.nchroniaris.ASC.util.model.GameServer;
@@ -63,6 +64,11 @@ public class RunCommandEvent extends Event {
     }
 
     @Override
+    protected String eventString() {
+        return "Run (Generic) Command";
+    }
+
+    @Override
     public final void run() {
 
         // Implementation of the Template pattern. In this case run() is the overarching algorithm and assembleCommand() is the swappable step.
@@ -76,11 +82,11 @@ public class RunCommandEvent extends Event {
 
             // Use the multiplexer to send a command to a session using the command
             super.multiplexer.sendCommand(super.gameServer.getSessionName(), command);
+            ASCProperties.getInstance().LOGGER.logInfo(String.format("Event [%s] - Command sent to session '%s'.", this.eventString(), super.gameServer.getSessionName()));
 
         } catch (SessionDoesNotExistException e) {
 
-            // TODO: 2020-08-10 Write this event to a log file
-            System.err.printf("[WARNING] The session %s is not active! The command was NOT sent to the session.", super.gameServer.getSessionName());
+            ASCProperties.getInstance().LOGGER.logWarning(String.format("Event [%s] - The command to '%s' was not sent because it is not active!", this.eventString(), super.gameServer.getSessionName()));
 
         }
 

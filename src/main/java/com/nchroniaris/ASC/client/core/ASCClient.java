@@ -23,6 +23,10 @@ public class ASCClient {
      */
     public void start() {
 
+        ASCProperties properties = ASCProperties.getInstance();
+
+        properties.LOGGER.logInfo(String.format("Client started with serverless value `%s`.", this.serverless ? "true" : "false"));
+
         // Register events with ASCServer (Stub for now)
         if (!this.serverless)
             System.out.println("Server registration stub!");
@@ -31,18 +35,25 @@ public class ASCClient {
         ASCRepository repo = ASCRepository.getInstance();
 
         // Obtain all the servers from the database
+        properties.LOGGER.logInfo("Querying all game servers...");
         List<GameServer> serverList = repo.getAllGameServers();
+        properties.LOGGER.logInfo(String.format("Got %d game servers.", serverList.size()));
 
         List<Event> eventList = new ArrayList<>();
 
         // For every GameServer that is set to autostart, get all their events
+        properties.LOGGER.logInfo("Querying all events...");
+
         for (GameServer gameServer : serverList)
             if (gameServer.isAutostart())
                 eventList.addAll(repo.getAllEvents(gameServer));
 
+        properties.LOGGER.logInfo(String.format("Got %d events.", eventList.size()));
+
         // Get new event scheduler and schedule all events
         EventScheduler scheduler = new EventScheduler();
 
+        properties.LOGGER.logInfo("Scheduling all events...");
         scheduler.scheduleEvents(eventList);
 
         // Here we add a shutdownHook in order to gracefully shutdown the client program if:
@@ -68,6 +79,8 @@ public class ASCClient {
 
         // Block main thread by waiting for all the threads to finish executing
         // TODO: 2020-07-30 Run main algorithm in a loop
+        properties.LOGGER.logInfo("Done. Currently running...");
+
         try {
 
             scheduler.shutdown();

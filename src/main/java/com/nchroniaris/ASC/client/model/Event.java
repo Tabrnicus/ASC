@@ -47,6 +47,13 @@ public abstract class Event implements Runnable {
     }
 
     /**
+     * Returns the string representation of the event's main function. This is meant for logging purposes.
+     *
+     * @return String representation of the event type. Example: "Start Server"
+     */
+    protected abstract String eventString();
+
+    /**
      * A method that allows the event to actually take place. Every event subclass must implement such a method.
      */
     @Override

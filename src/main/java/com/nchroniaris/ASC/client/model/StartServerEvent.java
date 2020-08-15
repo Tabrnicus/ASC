@@ -22,6 +22,9 @@ public class StartServerEvent extends ExecuteFileEvent {
 
     }
 
-
+    @Override
+    protected String eventString() {
+        return "Start Server";
+    }
 
 }

@@ -34,4 +34,10 @@ public class StopCommandEvent extends RunCommandEvent {
         return super.gameServer.getStopCommand();
 
     }
+
+    @Override
+    protected String eventString() {
+        return "Stop Command";
+    }
+
 }

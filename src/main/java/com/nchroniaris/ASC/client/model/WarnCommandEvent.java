@@ -44,4 +44,9 @@ public class WarnCommandEvent extends RunCommandEvent {
 
     }
 
+    @Override
+    protected String eventString() {
+        return "Warn Command";
+    }
+
 }
