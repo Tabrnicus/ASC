@@ -79,7 +79,7 @@ public class ASCLogger {
     }
 
     /**
-     * Logs an info style message to the file and standard error. These messages are prepended with "[WARNING]". These messages typically convey issues that should be resolved but don't currently massively impact the execution of the entire program.
+     * Logs an warning style message to the file and standard error. These messages are prepended with "[WARNING]". These messages typically convey issues that should be resolved but don't currently massively impact the execution of the entire program.
      *
      * @param message The contents of the message.
      */
@@ -90,7 +90,7 @@ public class ASCLogger {
     }
 
     /**
-     * Logs an info style message to the file and standard error. These messages are prepended with "[CRITICAL]". These messages typically convey critical issues or program-wide errors that impact the execution of the program as a whole.
+     * Logs an error style message to the file and standard error. These messages are prepended with "[CRITICAL]". These messages typically convey critical issues or program-wide errors that impact the execution of the program as a whole.
      *
      * @param message The contents of the message.
      */
