@@ -42,7 +42,7 @@ public class ASCProperties {
      *
      * @return The ASCProperties instance
      */
-    public static ASCProperties getInstance() {
+    public synchronized static ASCProperties getInstance() {
 
         if (ASCProperties.properties == null)
             ASCProperties.properties = new ASCProperties();
