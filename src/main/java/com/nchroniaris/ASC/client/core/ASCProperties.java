@@ -21,7 +21,7 @@ public class ASCProperties {
     // These are the String representations of the property names in the preferences file. Changes to property names will occur here.
     private static final String PROPERTY_PATH_SCREEN = "path.screen";
     private static final String PROPERTY_PATH_DB = "path.db";
-    private static final String PROPERTY_LOG = "path.log";
+    private static final String PROPERTY_PATH_LOG = "path.log";
     private static final String PROPERTY_MULTIPLEXER = "multiplexer";
 
     // This attribute holds the absolute path for the directory that contains the jar file.
@@ -102,7 +102,7 @@ public class ASCProperties {
             // These variables are local, and it will not be converted to an instance variable
             String mpType = properties.getProperty(ASCProperties.PROPERTY_MULTIPLEXER);
             String pathScreen = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_PATH_SCREEN));
-            String pathLog = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_LOG));
+            String pathLog = this.resolvePath(properties.getProperty(ASCProperties.PROPERTY_PATH_LOG));
 
             // Figure out what multiplexer the user wants to use and instantiate the right one. This switch statement is shallow but that is because I am only supporting screen at the moment.
             // switch(null) will fail in the case that the property is not set, which will produce a NullPointerException.
