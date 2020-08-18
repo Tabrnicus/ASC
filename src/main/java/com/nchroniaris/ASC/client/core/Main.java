@@ -38,7 +38,8 @@ public class Main {
 
     /**
      * Creates and runs the ASC Client instance to start up the application
-     * @param serverless    Whether the network functionality is disabled or not
+     *
+     * @param serverless Whether the network functionality is disabled or not
      */
     private static void runClient(boolean serverless) {
 
