@@ -1,6 +1,11 @@
 package com.nchroniaris.ASC.util.logger;
 
-import java.io.*;
+import com.nchroniaris.ASC.util.terminal.ASCTerminal;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -13,12 +18,26 @@ public class ASCLogger {
 
     private final File logFile;
 
+    private ASCTerminal terminal;
+
     /**
      * This creates an ASCLogger class that will interact with whatever file is specified by logFilePath
      *
      * @param logFilePath A valid file path that determines the location of a log file. This file need not exist as it will be created if not present.
      */
     public ASCLogger(String logFilePath) {
+
+        this(logFilePath, null);
+
+    }
+
+    /**
+     * This creates an ASCLogger class that will interact with whatever file is specified by logFilePath and additionally mirror its output to a valid ASCTerminal.
+     *
+     * @param logFilePath A valid file path that determines the location of a log file. This file need not exist as it will be created if not present.
+     * @param terminal    An ASCTerminal instance that output will be mirrored to. If at any point the terminal is null or closed, mirroring will not occur.
+     */
+    public ASCLogger(String logFilePath, ASCTerminal terminal) {
 
         if (logFilePath == null)
             throw new IllegalArgumentException("The file path cannot be null!");
@@ -36,21 +55,45 @@ public class ASCLogger {
 
         }
 
+        this.terminal = terminal;
+
     }
 
     /**
-     * General purpose log command that logs both to the file and one of the standard output streams simultaneously. This is synchronized to prevent potential weirdness with multiple threads writing to a file at once.
+     * Allows the logger's terminal to be set/reset. This is mostly here because it is not always possible for the creator of this class to specify a terminal on construction.
+     *
+     * @param terminal A valid terminal instance. Cannot be null or closed.
+     */
+    public synchronized void setTerminal(ASCTerminal terminal) {
+
+        if (terminal == null || terminal.isClosed())
+            throw new IllegalArgumentException("Specified terminal cannot be null or closed! Please specify a valid open ASCTerminal instance.");
+
+        this.terminal = terminal;
+
+    }
+
+    /**
+     * Queries whether the terminal is able to be used. Cases include null, a closed terminal, or an open one. The only case that that terminal is able to be used is when it is NOT null AND open.
+     *
+     * @return Status of the terminal object
+     */
+    private synchronized boolean terminalAvailable() {
+
+        // NullPointerException is avoided via the short circuit
+        return (this.terminal != null && !this.terminal.isClosed());
+
+    }
+
+    /**
+     * General purpose log command that logs to the file specified in construction. This is synchronized to prevent potential weirdness with multiple threads writing to a file at once.
      *
      * @param message The message to output, as a string.
-     * @param stream  Any of the standard output streams to simultaneously print to.
      */
-    private synchronized void log(String message, PrintStream stream) {
+    private synchronized void log(String message) {
 
         // Each message will have a datetime readout in a particular format, followed by the message
         message = LocalDateTime.now().format(DateTimeFormatter.ofPattern(ASCLogger.DATETIME_FORMAT)) + " - " + message;
-
-        // Prints to any of the standard output streams. This includes System.out and System.err.
-        stream.println(message);
 
         // Use try with-resources block to create a BufferedWriter using the File object created upon instantiation. We want to append to this file, so we set the append flag to true.
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(this.logFile, true))) {
@@ -74,7 +117,15 @@ public class ASCLogger {
      */
     public synchronized void logInfo(String message) {
 
-        this.log("[INFO]:\t\t" + message, System.out);
+        // Prepend proper prefix for the message
+        message = "[INFO]:\t\t" + message;
+
+        // Log to the file
+        this.log(message);
+
+        // Print the message using the proper style to the terminal, IF available.
+        if (this.terminalAvailable())
+            this.terminal.printDefault(message);
 
     }
 
@@ -85,7 +136,15 @@ public class ASCLogger {
      */
     public synchronized void logWarning(String message) {
 
-        this.log("[WARNING]:\t" + message, System.err);
+        // Prepend proper prefix for the message
+        message = "[WARNING]:\t" + message;
+
+        // Log to the file
+        this.log(message);
+
+        // Print the message using the proper style to the terminal, IF available.
+        if (this.terminalAvailable())
+            this.terminal.printWarning(message);
 
     }
 
@@ -96,9 +155,16 @@ public class ASCLogger {
      */
     public synchronized void logError(String message) {
 
-        this.log("[CRITICAL]:\t" + message, System.err);
+        // Prepend proper prefix for the message
+        message = "[CRITICAL]:\t" + message;
+
+        // Log to the file
+        this.log(message);
+
+        // Print the message using the proper style to the terminal, IF available.
+        if (this.terminalAvailable())
+            this.terminal.printError(message);
 
     }
-
 
 }
