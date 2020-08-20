@@ -22,7 +22,7 @@ public class ASCTerminal implements AutoCloseable {
     // AttributedStyle constants for the different print "modes". These stay constant throughout the program so there is no need to re-instantiate them every time
     private static final AttributedStyle STYLE_DEFAULT = AttributedStyle.DEFAULT;
 
-    private static final AttributedStyle STYLE_INFO = new AttributedStyle()
+    private static final AttributedStyle STYLE_SUCCESS = new AttributedStyle()
             .foreground(AttributedStyle.GREEN);
 
     private static final AttributedStyle STYLE_WARNING = new AttributedStyle()
@@ -87,13 +87,13 @@ public class ASCTerminal implements AutoCloseable {
     }
 
     /**
-     * This prints the contents of the string using the "info" terminal style (green text)
+     * This prints the contents of the string using the "success" terminal style (green text)
      *
      * @param content The contents of the message
      */
-    public synchronized void printInfo(String content) {
+    public synchronized void printSuccess(String content) {
 
-        this.printLine(new AttributedString(content, ASCTerminal.STYLE_INFO));
+        this.printLine(new AttributedString(content, ASCTerminal.STYLE_SUCCESS));
 
     }
 
