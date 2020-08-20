@@ -60,6 +60,7 @@ public class ASCClient {
         //  1) The program exits normally
         //  2) A user interrupt is made, such as ^C.
         // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
+        // TODO: 2020-08-19 Replace with SignalHandler so that the JVM doesn't shut itself down
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
             System.out.println("Shutdown hook invoked, shutting down gracefully...");
