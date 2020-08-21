@@ -41,6 +41,8 @@ public class ASCTerminal implements AutoCloseable {
     /**
      * Constructs an ASCTerminal instance, and will attempt to spawn a Jline3 system terminal instance. Through this class' interface you will be able to read and log messages with a certain style.
      * <p>
+     * The caller is REQUIRED to close the resource when finished via <code>ASCTerminal.close()</code>
+     * <p>
      * Upon instantiation, if Jline3 <b>cannot</b> find a system terminal to interact with it will create a dumb terminal. Such terminals have limited functionality and the program can behave weirdly if such a terminal is used. Thus it is not advisable to use a dumb terminal but it is in no means not allowed. Set <code>allowDumbTerminal</code> to true to allow dumb terminals as a fallback for system ones
      *
      * @param allowDumbTerminal If set to true, the constructor will allow a Jline3 dumb terminal to be used and will not throw an error. See above for details.
@@ -139,6 +141,8 @@ public class ASCTerminal implements AutoCloseable {
      * Reads the line using the default prompt string "> " and returns the contents of what the user input. This method is blocking on the calling thread.
      *
      * @return The user input as a result of the call.
+     * @throws UserInterruptException If the user interrupts the thread by pressing Ctrl+C or otherwise
+     * @throws EndOfFileException     If the user presses Ctrl+D or uses shell redirection to feed input stdin
      */
     public synchronized String readLine() throws UserInterruptException, EndOfFileException {
 
@@ -157,7 +161,9 @@ public class ASCTerminal implements AutoCloseable {
      * @return true if the resource has been closed, false otherwise.
      */
     public synchronized boolean isClosed() {
+
         return this.closed;
+
     }
 
     @Override
