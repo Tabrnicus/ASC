@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        boolean serverless = false;
+        ASCClient.ClientOptions options = new ASCClient.ClientOptions();
 
         // Check all arguments. If we don't have any, this loop will not run and it will just run the client normally with networking. If we have exactly one arg it will be checked and handled appropriately. If we have more than one argument it will either print the help text or it will give an error.
         for (String arg : args) {
@@ -19,7 +19,7 @@ public class Main {
 
             } else if (arg.equals("-s")) {
 
-                serverless = true;
+                options.serverless = true;
 
             } else {
 
@@ -31,19 +31,19 @@ public class Main {
 
         }
 
-        // Run client with serverless parameter
-        Main.runClient(serverless);
+        // Run client with command line options
+        Main.runClient(options);
 
     }
 
     /**
      * Creates and runs the ASC Client instance to start up the application
      *
-     * @param serverless Whether the network functionality is disabled or not
+     * @param options An ASCClient.ClientOptions instance that has all the options from the command line filled out
      */
-    private static void runClient(boolean serverless) {
+    private static void runClient(ASCClient.ClientOptions options) {
 
-        ASCClient client = new ASCClient(serverless);
+        ASCClient client = new ASCClient(options);
         client.start();
 
     }

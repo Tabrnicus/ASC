@@ -10,25 +10,61 @@ import java.util.List;
 
 public class ASCClient {
 
-    private final boolean serverless;
+    /**
+     * A class representing all the flags that can be set for the program's execution. Upon calling ASCClient.start() it will analyze the options and execute properly.
+     */
+    public static class ClientOptions {
 
-    public ASCClient(boolean serverless) {
+        public boolean serverless;
 
-        this.serverless = serverless;
+        /**
+         * Default constructor. Inserts default values for all primitives.
+         */
+        public ClientOptions() {
+
+            this.serverless = false;
+
+        }
+
+        /**
+         * Copy constructor
+         *
+         * @param clientOptions The ClientOptions class you want to duplicate.
+         */
+        public ClientOptions(ClientOptions clientOptions) {
+
+            if (clientOptions == null)
+                throw new IllegalArgumentException("ClientOptions cannot be null!");
+
+            this.serverless = clientOptions.serverless;
+
+        }
+
+    }
+
+    public final ClientOptions options;
+
+    public ASCClient(ClientOptions options) {
+
+        // If options are null (which they shouldn't be) create a default set. Otherwise clone the object to prevent it be mutated further.
+        if (options == null)
+            this.options = new ClientOptions();
+        else
+            this.options = new ClientOptions(options);
 
     }
 
     /**
-     * The main method that starts the main loop of the client program.
+     * The main method that starts the main loop of the client program in accordance with the options provided to the class upon construction.
      */
     public void start() {
 
         ASCProperties properties = ASCProperties.getInstance();
 
-        properties.LOGGER.logInfo(String.format("Client started with serverless value `%s`.", this.serverless ? "true" : "false"));
+        properties.LOGGER.logInfo(String.format("Client started with serverless value `%s`.", this.options.serverless ? "true" : "false"));
 
         // Register events with ASCServer (Stub for now)
-        if (!this.serverless)
+        if (!this.options.serverless)
             System.out.println("Server registration stub!");
 
         // TODO: 2020-07-30 perhaps dynamically inject this repo in order to facilitate testing
