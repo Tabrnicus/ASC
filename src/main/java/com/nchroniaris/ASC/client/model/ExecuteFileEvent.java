@@ -51,10 +51,8 @@ public class ExecuteFileEvent extends Event {
      */
     public ExecuteFileEvent(TerminalMultiplexer multiplexer, GameServer gameServer, LocalTime time, String executablePath) {
 
-        super(multiplexer, gameServer, time);
-
-        this.executablePath = executablePath;
-        this.additionalArgs = new String[]{};
+        // Call main constructor with a default value for args
+        this(multiplexer, gameServer, time, executablePath, new String[]{});
 
     }
 
