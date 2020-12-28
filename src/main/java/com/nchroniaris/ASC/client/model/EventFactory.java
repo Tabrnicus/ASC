@@ -12,6 +12,13 @@ import java.util.Arrays;
  */
 public class EventFactory {
 
+    // TODO: 2020-12-28 consider enum or some other implementation
+    private static final int EVENT_EXECUTE = 0;
+    private static final int EVENT_START = 1;
+    private static final int EVENT_COMMAND = 2;
+    private static final int EVENT_STOP = 3;
+    private static final int EVENT_WARN = 4;
+
     /**
      * Given an event type id, this method will return the correctly instantiated Event.
      *
@@ -41,19 +48,19 @@ public class EventFactory {
 
             switch (eventType) {
 
-                case 0:
+                case EVENT_EXECUTE:
                     return new ExecuteFileEvent(multiplexer, server, time, args[0], Arrays.copyOfRange(args, 1, args.length));
 
-                case 1:
+                case EVENT_START:
                     return new StartServerEvent(multiplexer, server, time);
 
-                case 2:
+                case EVENT_COMMAND:
                     return new RunCommandEvent(multiplexer, server, time, args[0]);
 
-                case 3:
+                case EVENT_STOP:
                     return new StopCommandEvent(multiplexer, server, time);
 
-                case 4:
+                case EVENT_WARN:
                     return new WarnCommandEvent(multiplexer, server, time, args[0]);
 
                 default:
@@ -63,7 +70,7 @@ public class EventFactory {
 
         } catch (ArrayIndexOutOfBoundsException e) {
 
-            // The purpose of this try/catch block is to throw a more descriptive error that is in line with the rest of the function. An ArrayIndexOutOfBoundsException will only happen when the eventId is either 0, 1, or 3, AND args is a valid list but with zero elements.
+            // The purpose of this try/catch block is to throw a more descriptive error that is in line with the rest of the function. An ArrayIndexOutOfBoundsException will only happen when the event is one of EVENT_EXECUTE, EVENT_COMMAND, or EVENT_WARN -- AND args is a valid, **empty** list.
             throw new IllegalArgumentException("The args parameter is valid, but does not have enough elements for the operation. Please verify that the args field in the database has the correct data for the event you are trying to run.");
 
         }
