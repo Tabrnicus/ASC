@@ -14,9 +14,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class EventScheduler {
 
+    private static final Duration DURATION_24H = Duration.ofHours(24);
+
     private final ScheduledExecutorService executorService;
 
-    private static final Duration DURATION_24H = Duration.ofHours(24);
+    // TODO: 2020-08-22 add synchronization to shutdown -- perhaps create a lock on this object to work with synchronized methods
 
     /**
      * Creates a new EventScheduler by instantiating a version of ScheduledExecutorService using the factory methods in Executors. Use the methods in here to schedule events to your heart's content, but **MAKE SURE TO CALL shutdown() when you are done.**
