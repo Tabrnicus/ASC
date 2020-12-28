@@ -22,7 +22,26 @@ public class ASCRepository {
     private static ASCRepository repository = null;
 
     // Generic error message for a SQLExceptionError
-    private static final String SQLExceptionError = "[CRITICAL] There was an error communicating with the database! This is most likely due to an old version of the database, a corrupt database (no tables for where there should be one), or an empty database.";
+    private static final String SQL_EXCEPTION_ERROR = "[CRITICAL] There was an error communicating with the database! This is most likely due to an old version of the database, a corrupt database (no tables for where there should be one), or an empty database.";
+
+    private static final String TABLE_SERVERS = "servers";
+    private static final String TABLE_EVENTS = "events";
+
+    private static final String FIELD_SERVERS_SID = "sid";
+    private static final String FIELD_SERVERS_DESCRIPTION = "description";
+    private static final String FIELD_SERVERS_GAME = "game";
+    private static final String FIELD_SERVERS_MONIKER = "moniker";
+    private static final String FIELD_SERVERS_STARTFILE = "startfile";
+    private static final String FIELD_SERVERS_STOPCOMMAND = "stopcommand";
+    private static final String FIELD_SERVERS_WARNCOMMAND = "warncommand";
+    private static final String FIELD_SERVERS_PORT = "port";
+    private static final String FIELD_SERVERS_AUTOSTART = "autostart";
+
+    private static final String FIELD_EVENTS_EID = "eid";
+    private static final String FIELD_EVENTS_SID = "sid";
+    private static final String FIELD_EVENTS_TIME = "time";
+    private static final String FIELD_EVENTS_ETYPE = "etype";
+    private static final String FIELD_EVENTS_ARGS = "args";
 
     /**
      * Although there is nothing in this constructor, it MUST be declared private because of the singleton pattern.
@@ -46,7 +65,7 @@ public class ASCRepository {
      * The reason that this approach is chosen as opposed to keeping a single connection object alive for the duration of the enclosing class is that the DB operations that are actually run are very few and very far between (mostly running once a day) so it would not make much sense to keep a connection object alive for eighteen hours for example, only for the application to close it on exit.
      *
      * @return Returns the connection object that the caller can use to connect to the database.
-     * @throws SQLException          Thrown if the connection to the database fails somehow other than it not being there
+     * @throws SQLException Thrown if the connection to the database fails somehow other than it not being there
      */
     private Connection connect() throws SQLException {
 
@@ -73,37 +92,48 @@ public class ASCRepository {
     public List<GameServer> getAllGameServers() {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
-        String query = "SELECT sid, description, game, moniker, startfile, stopcommand, warncommand, port, autostart FROM servers";
+        String query = "SELECT" +
+                ASCRepository.FIELD_SERVERS_SID +
+                ASCRepository.FIELD_SERVERS_DESCRIPTION +
+                ASCRepository.FIELD_SERVERS_GAME +
+                ASCRepository.FIELD_SERVERS_MONIKER +
+                ASCRepository.FIELD_SERVERS_STARTFILE +
+                ASCRepository.FIELD_SERVERS_STOPCOMMAND +
+                ASCRepository.FIELD_SERVERS_WARNCOMMAND +
+                ASCRepository.FIELD_SERVERS_PORT +
+                ASCRepository.FIELD_SERVERS_AUTOSTART +
+                "FROM" +
+                ASCRepository.TABLE_SERVERS;
 
         List<GameServer> serverList = new ArrayList<>();
 
         // https://www.sqlitetutorial.net/sqlite-java/select/
-        // All of conn, stmt, and rs are resources that in such a try block structure will automatically get closed -- avoiding a finally statement at the end
-        try (Connection conn = connect();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
+        // All of `connection`, `statement`, and `results` are resources that in such a try block structure will automatically get closed -- avoiding a finally statement at the end
+        try (Connection connection = connect();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
 
-            // Looping through all the elements of the result set
-            while (rs.next()) {
+            // Loop through all the elements of the result set
+            while (resultSet.next()) {
 
                 // Create a model GameServer object with all the parameters in the database and add it to the list
                 serverList.add(new GameServer(
-                        rs.getInt("sid"),
-                        rs.getString("description"),
-                        rs.getString("game"),
-                        rs.getString("moniker"),
-                        rs.getString("startfile"),
-                        rs.getString("stopcommand"),
-                        rs.getString("warncommand"),
-                        rs.getInt("port"),
-                        rs.getBoolean("autostart")
+                        resultSet.getInt(ASCRepository.FIELD_SERVERS_SID),
+                        resultSet.getString(ASCRepository.FIELD_SERVERS_DESCRIPTION),
+                        resultSet.getString(ASCRepository.FIELD_SERVERS_GAME),
+                        resultSet.getString(ASCRepository.FIELD_SERVERS_MONIKER),
+                        resultSet.getString(ASCRepository.FIELD_SERVERS_STARTFILE),
+                        resultSet.getString(ASCRepository.FIELD_SERVERS_STOPCOMMAND),
+                        resultSet.getString(ASCRepository.FIELD_SERVERS_WARNCOMMAND),
+                        resultSet.getInt(ASCRepository.FIELD_SERVERS_PORT),
+                        resultSet.getBoolean(ASCRepository.FIELD_SERVERS_AUTOSTART)
                 ));
 
             }
 
         } catch (SQLException e) {
 
-            System.err.println(ASCRepository.SQLExceptionError);
+            System.err.println(ASCRepository.SQL_EXCEPTION_ERROR);
             e.printStackTrace();
             System.exit(1);
 
@@ -122,37 +152,50 @@ public class ASCRepository {
     public List<Event> getAllEvents(GameServer server) {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
-        String query = "SELECT e.time, e.etype, e.args FROM events AS e INNER JOIN servers AS s USING(sid) WHERE s.sid = ?";
+        // Readable SQL statement:
+        //      SELECT e.time, e.etype, e.args FROM events AS e INNER JOIN servers AS s USING(sid) WHERE s.sid = ?
+        String query = "SELECT" +
+                "e." + ASCRepository.FIELD_EVENTS_TIME +
+                "e." + ASCRepository.FIELD_EVENTS_ETYPE +
+                "e." + ASCRepository.FIELD_EVENTS_ARGS +
+                "FROM" +
+                ASCRepository.TABLE_EVENTS + "AS e" +
+                "INNER JOIN" +
+                ASCRepository.TABLE_SERVERS + "AS s" + "USING(sid)" +
+                "WHERE" +
+                "s." + ASCRepository.FIELD_SERVERS_SID + "= ?";
 
         List<Event> eventList = new ArrayList<>();
 
-        try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+        // We use a PreparedStatement in conjunction with its set*() methods to avoid SQL injection attacks.
+        try (Connection connection = connect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             // According to the Java sql docs, "A ResultSet object is automatically closed when the Statement object that generated it is closed, ..." therefore not closing this should be safe because the try-with-resources block will attempt to close the prepared statement.
-            pstmt.setInt(1, server.getSid());
-            ResultSet rs = pstmt.executeQuery();
+            preparedStatement.setInt(1, server.getSid());
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             Gson gson = new Gson();
 
-            while (rs.next()) {
+            // Loop through all the elements of the result set
+            while (resultSet.next()) {
 
                 try {
 
                     // Add the event based on its etype, passing all information to the factory class. We also deserialize the JSON string that is held in the args field.
                     // https://stackoverflow.com/questions/5554217/google-gson-deserialize-listclass-object-generic-type/17300003#17300003
                     eventList.add(EventFactory.buildEvent(
-                            rs.getInt("etype"),
+                            resultSet.getInt(ASCRepository.FIELD_EVENTS_ETYPE),
                             server,
 
                             // Since SQLite does not support storing an actual time type, we have to store it as a string. Therefore, we have to retrieve it as a string and use the java.sql.Time.valueOf() method to convert the string to a Time object. Further, since we are using LocalTime() in Event, we have to convert the SQL Time object to a LocalTime object.
-                            Time.valueOf(rs.getString("time")).toLocalTime(),
-                            gson.fromJson(rs.getString("args"), String[].class)
+                            Time.valueOf(resultSet.getString(ASCRepository.FIELD_EVENTS_TIME)).toLocalTime(),
+                            gson.fromJson(resultSet.getString(ASCRepository.FIELD_EVENTS_ARGS), String[].class)
                     ));
 
                 } catch (JsonSyntaxException e) {
 
-                    System.err.printf("There was an issue parsing Json data from the args field! Got (%s)%n", rs.getString("args"));
+                    System.err.printf("There was an issue parsing Json data from the args field! Got (%s)%n", resultSet.getString(ASCRepository.FIELD_EVENTS_ARGS));
                     e.printStackTrace();
                     System.exit(1);
 
@@ -162,7 +205,7 @@ public class ASCRepository {
 
         } catch (SQLException e) {
 
-            System.err.println(ASCRepository.SQLExceptionError);
+            System.err.println(ASCRepository.SQL_EXCEPTION_ERROR);
             e.printStackTrace();
             System.exit(1);
 
