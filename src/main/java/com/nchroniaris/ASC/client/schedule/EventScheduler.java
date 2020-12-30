@@ -4,8 +4,10 @@ import com.nchroniaris.ASC.client.model.Event;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -36,18 +38,22 @@ public class EventScheduler {
      *
      * @param eventList List of Event objects to schedule
      */
-    public void scheduleEvents(List<Event> eventList) {
+    public List<Future<?>> scheduleEvents(List<Event> eventList) {
+
+        List<Future<?>> futureList = new ArrayList<>();
 
         for (Event event : eventList) {
 
-            // We call the executorService and schedule each event (which implements Runnable) using the LocalTime in the event to calculate the precise duration (to the millisecond) between now and the time specified in the LocalTime.
-            this.executorService.schedule(
+            // We call the executorService and schedule each event (which implements Runnable) using the LocalTime in the event to calculate the precise duration (to the millisecond) between now and the time specified in the LocalTime. We also save the ScheduledFuture returned by the executor.
+            futureList.add(this.executorService.schedule(
                     event,
                     this.calculateDelay(event.getTime(), LocalTime.now()),
                     TimeUnit.MILLISECONDS
-            );
+            ));
 
         }
+
+        return futureList;
 
     }
 
