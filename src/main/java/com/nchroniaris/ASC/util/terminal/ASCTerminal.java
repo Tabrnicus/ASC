@@ -129,7 +129,7 @@ public class ASCTerminal implements AutoCloseable {
     private synchronized void printLine(AttributedString content) {
 
         // We can't use the terminal or reader resource if it's closed already
-        if (this.closed)
+        if (this.isClosed())
             throw new IllegalStateException(ASCTerminal.ERROR_CLOSED);
 
         // This prints the attributed string's content to the terminal and redraws the entire terminal in order to preserve the readLine() input
@@ -144,10 +144,10 @@ public class ASCTerminal implements AutoCloseable {
      * @throws UserInterruptException If the user interrupts the thread by pressing Ctrl+C or otherwise
      * @throws EndOfFileException     If the user presses Ctrl+D or uses shell redirection to feed input stdin
      */
-    public synchronized String readLine() throws UserInterruptException, EndOfFileException {
+    public String readLine() throws UserInterruptException, EndOfFileException {
 
-        // We can't use the terminal or reader resource if it's closed already
-        if (this.closed)
+        // We can't use the terminal or reader resource if it's closed already. Since this is not synchronized there is a possibility this will fail. But this should be few and far between since the terminal should not close often.
+        if (this.isClosed())
             throw new IllegalStateException(ASCTerminal.ERROR_CLOSED);
 
         // This call is blocking on the calling thread
@@ -170,7 +170,7 @@ public class ASCTerminal implements AutoCloseable {
     public synchronized void close() throws IOException {
 
         // It is not well defined in the JLine3 docs what happens when you attempt to close an already closed terminal. Therefore to avoid such a condition we test for it first
-        if (this.closed)
+        if (this.isClosed())
             throw new IllegalStateException("Terminal has already been closed!");
 
         this.terminal.close();
