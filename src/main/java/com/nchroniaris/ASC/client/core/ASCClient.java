@@ -1,12 +1,16 @@
 package com.nchroniaris.ASC.client.core;
 
+import com.nchroniaris.ASC.client.console.ASCConsole;
 import com.nchroniaris.ASC.client.database.ASCRepository;
 import com.nchroniaris.ASC.client.model.Event;
 import com.nchroniaris.ASC.client.schedule.EventScheduler;
 import com.nchroniaris.ASC.util.model.GameServer;
+import com.nchroniaris.ASC.util.terminal.ASCTerminal;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class ASCClient {
 
@@ -51,6 +55,9 @@ public class ASCClient {
 
     public final ClientOptions options;
 
+    public EventScheduler scheduler;
+    public ScheduledExecutorService consoleExecutor;
+
     public ASCClient(ClientOptions options) {
 
         // If options are null (which they shouldn't be) create a default set. Otherwise clone the object to prevent it be mutated further.
@@ -58,6 +65,29 @@ public class ASCClient {
             this.options = new ClientOptions();
         else
             this.options = new ClientOptions(options);
+
+        // This is here temporarily so that the threads get actually shut down
+        // Here we add a shutdownHook in order to gracefully shutdown the client program if:
+        //  1) The program exits normally
+        //  2) A user interrupt is made, such as ^C.
+        // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
+        // TODO: 2020-08-19 Replace with SignalHandler so that the JVM doesn't shut itself down
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+            System.out.println("Shutdown hook invoked, shutting down gracefully...");
+
+            try {
+
+                ASCClient.this.scheduler.shutdownNow();
+
+            } catch (InterruptedException e) {
+
+                System.err.println("The shutdown process was interrupted! Scheduled events might not execute correctly!");
+                e.printStackTrace();
+
+            }
+
+        }));
 
     }
 
@@ -68,11 +98,53 @@ public class ASCClient {
 
         ASCProperties properties = ASCProperties.getInstance();
 
-        properties.LOGGER.logInfo(String.format("Client started with serverless value `%s`.", this.options.serverless ? "true" : "false"));
+        // Spawn a terminal using try-with-resources. In any case, the close() method will be invoked even if there is a kill signal
+        try (ASCTerminal terminal = new ASCTerminal(this.options.allowDumbTerminal)) {
 
-        // Register events with ASCServer (Stub for now)
-        if (!this.options.serverless)
-            System.out.println("Server registration stub!");
+            // Attach terminal (user facing UI) to the logger so that it shows up there
+            properties.LOGGER.setTerminal(terminal);
+
+            properties.LOGGER.logInfo(String.format("Client started with serverless value `%s`.", this.options.serverless ? "true" : "false"));
+
+            // Register events with ASCServer (Stub for now)
+            if (!this.options.serverless)
+                System.out.println("Server registration stub!");
+
+            // Spawn EventScheduler and a console instance. We pass eventScheduler to ASCConsole in order to allow it to schedule manual async events requested by the user.
+            this.scheduler = new EventScheduler();
+            ASCConsole console = new ASCConsole(terminal, this.scheduler);
+
+            // We want the console to be on its own thread so that it doesn't interrupt the main thread
+            this.consoleExecutor = Executors.newSingleThreadScheduledExecutor();
+            this.consoleExecutor.execute(console);
+
+            if (!this.options.consoleOnly)
+                this.scheduleEventsAndWait();
+
+            // We wait for the console thread to shut down before shutting down the eventScheduler because the former relies on the latter.
+            this.consoleExecutor.shutdown();
+            this.consoleExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+
+            // This call is blocking
+            this.scheduler.shutdown();
+
+        } catch (IOException e) {
+
+            // TODO: 2020-08-26 implement
+            e.printStackTrace();
+
+        } catch (InterruptedException e) {
+
+            System.err.println("The shutdown process was interrupted! Scheduled events might not execute correctly!");
+            e.printStackTrace();
+
+        }
+
+    }
+
+    private void scheduleEventsAndWait() {
+
+        ASCProperties properties = ASCProperties.getInstance();
 
         // TODO: 2020-07-30 perhaps dynamically inject this repo in order to facilitate testing
         ASCRepository repo = ASCRepository.getInstance();
@@ -87,55 +159,41 @@ public class ASCClient {
         // For every GameServer that is set to autostart, get all their events
         properties.LOGGER.logInfo("Querying all events...");
 
+        // Only start servers that have the autostart flag enabled
         for (GameServer gameServer : serverList)
             if (gameServer.isAutostart())
                 eventList.addAll(repo.getAllEvents(gameServer));
 
         properties.LOGGER.logInfo(String.format("Got %d events.", eventList.size()));
 
-        // Get new event scheduler and schedule all events
-        EventScheduler scheduler = new EventScheduler();
-
         properties.LOGGER.logInfo("Scheduling all events...");
-        scheduler.scheduleEvents(eventList);
+        List<Future<?>> futureList = this.scheduler.scheduleEvents(eventList);
 
-        // Here we add a shutdownHook in order to gracefully shutdown the client program if:
-        //  1) The program exits normally
-        //  2) A user interrupt is made, such as ^C.
-        // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
-        // TODO: 2020-08-19 Replace with SignalHandler so that the JVM doesn't shut itself down
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        properties.LOGGER.logInfo("Done. Currently running...");
 
-            System.out.println("Shutdown hook invoked, shutting down gracefully...");
-
+        // Since we scheduled an array of events, we got back a list of futures that each represent one event. By calling .get() on each of them, we block the main thread and effectively wait until all the work is finished before exiting out of this method.
+        for (Future<?> future: futureList) {
             try {
 
-                scheduler.shutdownNow();
+                future.get();
 
             } catch (InterruptedException e) {
 
-                System.err.println("The shutdown process was interrupted! Scheduled events might not execute correctly!");
+                System.err.println("Main thread was interrupted while waiting for threads to execute. Scheduled events might not execute correctly!");
+                e.printStackTrace();
+
+            } catch (ExecutionException e) {
+
+                System.err.println("An event threw an exception! The program will continue, but note that not this event did not execute correctly. This may cause future errors.");
                 e.printStackTrace();
 
             }
-
-        }));
-
-        // Block main thread by waiting for all the threads to finish executing
-        // TODO: 2020-07-30 Run main algorithm in a loop
-        properties.LOGGER.logInfo("Done. Currently running...");
-
-        try {
-
-            scheduler.shutdown();
-
-        } catch (InterruptedException e) {
-
-            System.err.println("Main thread was interrupted while waiting for threads to execute. Scheduled events might not execute correctly!");
-            e.printStackTrace();
-
         }
 
+    }
+
+    private void shutdownNow() {
+        System.out.println("Stub shutdownNow()");
     }
 
 }
