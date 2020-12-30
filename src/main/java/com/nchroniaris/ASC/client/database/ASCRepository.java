@@ -92,18 +92,20 @@ public class ASCRepository {
     public List<GameServer> getAllGameServers() {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
-        String query = "SELECT" +
-                ASCRepository.FIELD_SERVERS_SID +
-                ASCRepository.FIELD_SERVERS_DESCRIPTION +
-                ASCRepository.FIELD_SERVERS_GAME +
-                ASCRepository.FIELD_SERVERS_MONIKER +
-                ASCRepository.FIELD_SERVERS_STARTFILE +
-                ASCRepository.FIELD_SERVERS_STOPCOMMAND +
-                ASCRepository.FIELD_SERVERS_WARNCOMMAND +
-                ASCRepository.FIELD_SERVERS_PORT +
-                ASCRepository.FIELD_SERVERS_AUTOSTART +
-                "FROM" +
-                ASCRepository.TABLE_SERVERS;
+        // Readable SQL statement:
+        //      SELECT sid, description, game, moniker, startfile, stopcommand, warncommand, port, autostart FROM servers
+        String query = String.format("SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s FROM %s",
+                ASCRepository.FIELD_SERVERS_SID,
+                ASCRepository.FIELD_SERVERS_DESCRIPTION,
+                ASCRepository.FIELD_SERVERS_GAME,
+                ASCRepository.FIELD_SERVERS_MONIKER,
+                ASCRepository.FIELD_SERVERS_STARTFILE,
+                ASCRepository.FIELD_SERVERS_STOPCOMMAND,
+                ASCRepository.FIELD_SERVERS_WARNCOMMAND,
+                ASCRepository.FIELD_SERVERS_PORT,
+                ASCRepository.FIELD_SERVERS_AUTOSTART,
+                ASCRepository.TABLE_SERVERS
+        );
 
         List<GameServer> serverList = new ArrayList<>();
 
@@ -153,17 +155,17 @@ public class ASCRepository {
 
         // Get all the game servers in the table. Using * may break the query later on if the database is updated with new columns so all columns are explicitly written
         // Readable SQL statement:
-        //      SELECT e.time, e.etype, e.args FROM events AS e INNER JOIN servers AS s USING(sid) WHERE s.sid = ?
-        String query = "SELECT" +
-                "e." + ASCRepository.FIELD_EVENTS_TIME +
-                "e." + ASCRepository.FIELD_EVENTS_ETYPE +
-                "e." + ASCRepository.FIELD_EVENTS_ARGS +
-                "FROM" +
-                ASCRepository.TABLE_EVENTS + "AS e" +
-                "INNER JOIN" +
-                ASCRepository.TABLE_SERVERS + "AS s" + "USING(sid)" +
-                "WHERE" +
-                "s." + ASCRepository.FIELD_SERVERS_SID + "= ?";
+        //      SELECT e.time, e.etype, e.args FROM events AS e INNER JOIN servers AS s ON s.sid = e.sid WHERE s.sid = ?
+        String query = String.format("SELECT e.%s, e.%s, e.%s FROM %s AS e INNER JOIN %s AS s ON s.%s = e.%s WHERE s.%s = ?",
+                ASCRepository.FIELD_EVENTS_TIME,
+                ASCRepository.FIELD_EVENTS_ETYPE,
+                ASCRepository.FIELD_EVENTS_ARGS,
+                ASCRepository.TABLE_EVENTS,
+                ASCRepository.TABLE_SERVERS,
+                ASCRepository.FIELD_SERVERS_SID,
+                ASCRepository.FIELD_EVENTS_SID,
+                ASCRepository.FIELD_SERVERS_SID
+        );
 
         List<Event> eventList = new ArrayList<>();
 
