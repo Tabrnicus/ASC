@@ -16,6 +16,9 @@ public class ASCClient {
     public static class ClientOptions {
 
         public boolean serverless;
+        public boolean allowDumbTerminal;
+        public boolean consoleOnly;
+
 
         /**
          * Default constructor. Inserts default values for all primitives.
@@ -23,6 +26,8 @@ public class ASCClient {
         public ClientOptions() {
 
             this.serverless = false;
+            this.allowDumbTerminal = false;
+            this.consoleOnly = false;
 
         }
 
@@ -37,6 +42,8 @@ public class ASCClient {
                 throw new IllegalArgumentException("ClientOptions cannot be null!");
 
             this.serverless = clientOptions.serverless;
+            this.allowDumbTerminal = clientOptions.allowDumbTerminal;
+            this.consoleOnly = clientOptions.consoleOnly;
 
         }
 
