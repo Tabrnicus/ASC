@@ -61,10 +61,11 @@ public class EventScheduler {
      * Call this method if you want to immediately execute a particular event using the scheduler. Cannot guarantee that the passed event will start executing at the time of the call, as there could be other jobs in the queue. This behaviour should be very rare though
      *
      * @param event The event to be executed
+     * @return A {@code Future} representing the future completion of the task. This should be used to cancel or otherwise wait for the task
      */
-    public void executeEventNow(Event event) {
+    public Future<?> submitEventNow(Event event) {
 
-        this.executorService.execute(event);
+        return this.executorService.submit(event);
 
     }
 
