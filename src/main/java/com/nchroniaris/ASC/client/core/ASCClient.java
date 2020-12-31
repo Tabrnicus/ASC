@@ -1,5 +1,6 @@
 package com.nchroniaris.ASC.client.core;
 
+import com.nchroniaris.ASC.client.concurrent.SynchronizedFutureList;
 import com.nchroniaris.ASC.client.console.ASCConsole;
 import com.nchroniaris.ASC.client.database.ASCRepository;
 import com.nchroniaris.ASC.client.model.Event;
@@ -10,7 +11,10 @@ import com.nchroniaris.ASC.util.terminal.ASCTerminal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ASCClient {
 
@@ -53,10 +57,12 @@ public class ASCClient {
 
     }
 
-    public final ClientOptions options;
+    private final ClientOptions options;
 
-    public EventScheduler scheduler;
-    public ScheduledExecutorService consoleExecutor;
+    private EventScheduler scheduler;
+    private ScheduledExecutorService consoleExecutor;
+
+    private final SynchronizedFutureList synchronizedFutureList;
 
     public ASCClient(ClientOptions options) {
 
@@ -65,6 +71,11 @@ public class ASCClient {
             this.options = new ClientOptions();
         else
             this.options = new ClientOptions(options);
+
+        this.scheduler = null;
+        this.consoleExecutor = null;
+
+        this.synchronizedFutureList = new SynchronizedFutureList();
 
         // This is here temporarily so that the threads get actually shut down
         // Here we add a shutdownHook in order to gracefully shutdown the client program if:
@@ -118,8 +129,14 @@ public class ASCClient {
             this.consoleExecutor = Executors.newSingleThreadScheduledExecutor();
             this.consoleExecutor.execute(console);
 
-            if (!this.options.consoleOnly)
-                this.scheduleEventsAndWait();
+            // Main loop for scheduling events. This should continue until the user decides to exit or the program gets a kill signal.
+            if (!this.options.consoleOnly) {
+
+                // Schedule events, and pass the list of futures returned by the scheduler to the synced future list so that we can call waitForCompletion() on it. If another thread calls the cancelAllEvents() method the waitForCompletion() will return immediately since it will process all the remaining futures and realize they are cancelled.
+                this.synchronizedFutureList.clearAndAddAll(this.scheduleEvents());
+                this.synchronizedFutureList.waitForCompletion();
+
+            }
 
             // We wait for the console thread to shut down before shutting down the eventScheduler because the former relies on the latter.
             this.consoleExecutor.shutdown();
@@ -142,7 +159,7 @@ public class ASCClient {
 
     }
 
-    private void scheduleEventsAndWait() {
+    private List<Future<?>> scheduleEvents() {
 
         ASCProperties properties = ASCProperties.getInstance();
 
@@ -171,24 +188,7 @@ public class ASCClient {
 
         properties.LOGGER.logInfo("Done. Currently running...");
 
-        // Since we scheduled an array of events, we got back a list of futures that each represent one event. By calling .get() on each of them, we block the main thread and effectively wait until all the work is finished before exiting out of this method.
-        for (Future<?> future: futureList) {
-            try {
-
-                future.get();
-
-            } catch (InterruptedException e) {
-
-                System.err.println("Main thread was interrupted while waiting for threads to execute. Scheduled events might not execute correctly!");
-                e.printStackTrace();
-
-            } catch (ExecutionException e) {
-
-                System.err.println("An event threw an exception! The program will continue, but note that not this event did not execute correctly. This may cause future errors.");
-                e.printStackTrace();
-
-            }
-        }
+        return futureList;
 
     }
 
