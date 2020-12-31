@@ -86,17 +86,7 @@ public class ASCClient {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
             System.out.println("Shutdown hook invoked, shutting down gracefully...");
-
-            try {
-
-                ASCClient.this.scheduler.shutdownNow();
-
-            } catch (InterruptedException e) {
-
-                System.err.println("The shutdown process was interrupted! Scheduled events might not execute correctly!");
-                e.printStackTrace();
-
-            }
+            ASCClient.this.scheduler.shutdownNow();
 
         }));
 

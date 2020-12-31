@@ -144,14 +144,11 @@ public class EventScheduler {
     }
 
     /**
-     * This method exists in order to forcefully cancel the tasks in the ExecutorService. This should only be used when there is a requirement to shutdown the threads immediately. If you are looking for a way to do a normal shutdown and wait for all the threads to gracefully finish, refer to shutdown().
-     *
-     * @throws InterruptedException Passes the Exception that could be thrown by awaitTermination().
+     * This method exists in order to forcefully cancel the tasks in the ExecutorService. This should only be used when there is a requirement to shutdown the threads immediately. If you are looking for a way to do a normal shutdown and wait for all the threads to finish in a more controlled manner, refer to shutdown().
      */
-    public void shutdownNow() throws InterruptedException {
+    public void shutdownNow() {
 
         this.executorService.shutdownNow();
-        this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 
     }
 
@@ -161,10 +158,9 @@ public class EventScheduler {
 
         // https://stackoverflow.com/questions/171952/is-there-a-destructor-for-java
         // As pointed out in ^^, this is for sanity checking in case the caller does not call shutdown().
-
         if (!this.executorService.isShutdown()) {
-            System.err.println("[ERROR] There was an EventScheduler instance created, but not shutdown! Please call shutdown() after you are done with the class to avoid any weirdness.");
 
+            System.err.println("[ERROR] There was an EventScheduler instance created, but not shutdown! Please call shutdown() after you are done with the class to avoid any weirdness.");
             this.shutdownNow();
 
         }
