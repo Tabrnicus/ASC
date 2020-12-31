@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ASCClient {
 
@@ -64,6 +65,9 @@ public class ASCClient {
 
     private final SynchronizedFutureList synchronizedFutureList;
 
+    // This is to gracefully exit the main scheduling loop, when this is set to false. Atomic because this will be modified by multiple threads.
+    private final AtomicBoolean continueScheduling;
+
     public ASCClient(ClientOptions options) {
 
         // If options are null (which they shouldn't be) create a default set. Otherwise clone the object to prevent it be mutated further.
@@ -77,18 +81,7 @@ public class ASCClient {
 
         this.synchronizedFutureList = new SynchronizedFutureList();
 
-        // This is here temporarily so that the threads get actually shut down
-        // Here we add a shutdownHook in order to gracefully shutdown the client program if:
-        //  1) The program exits normally
-        //  2) A user interrupt is made, such as ^C.
-        // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
-        // TODO: 2020-08-19 Replace with SignalHandler so that the JVM doesn't shut itself down
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-
-            System.out.println("Shutdown hook invoked, shutting down gracefully...");
-            ASCClient.this.scheduler.shutdownNow();
-
-        }));
+        this.continueScheduling = new AtomicBoolean(true);
 
     }
 
@@ -98,6 +91,18 @@ public class ASCClient {
     public void start() {
 
         ASCProperties properties = ASCProperties.getInstance();
+
+        // Here we add a shutdownHook in order to gracefully shutdown the client program if:
+        //  1) The program exits normally
+        //  2) A user interrupt is made, such as ^C.
+        // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+            // Debug print
+            System.out.println("Shutdown hook invoked, shutting down gracefully...");
+            ASCClient.this.scheduler.shutdownNow();
+
+        }));
 
         // Spawn a terminal using try-with-resources. In any case, the close() method will be invoked even if there is a kill signal
         try (ASCTerminal terminal = new ASCTerminal(this.options.allowDumbTerminal)) {
@@ -122,9 +127,14 @@ public class ASCClient {
             // Main loop for scheduling events. This should continue until the user decides to exit or the program gets a kill signal.
             if (!this.options.consoleOnly) {
 
-                // Schedule events, and pass the list of futures returned by the scheduler to the synced future list so that we can call waitForCompletion() on it. If another thread calls the cancelAllEvents() method the waitForCompletion() will return immediately since it will process all the remaining futures and realize they are cancelled.
-                this.synchronizedFutureList.clearAndAddAll(this.scheduleEvents());
-                this.synchronizedFutureList.waitForCompletion();
+                // The atomic boolean controls whether to keep scheduling more events when the first batch has completed.
+                while (this.continueScheduling.get()) {
+
+                    // Schedule events, and pass the list of futures returned by the scheduler to the synced future list so that we can call waitForCompletion() on it. If another thread calls the cancelAllEvents() method the waitForCompletion() will return immediately since it will process all the remaining futures and realize they are cancelled.
+                    this.synchronizedFutureList.clearAndAddAll(this.scheduleEvents());
+                    this.synchronizedFutureList.waitForCompletion();
+
+                }
 
             }
 
@@ -149,6 +159,40 @@ public class ASCClient {
 
     }
 
+    /**
+     * Gracefully tries to exit the program by cancelling all the events currently scheduled but not yet executed.
+     */
+    public void shutdown() {
+
+        // Disable looping and cancel all events
+        this.continueScheduling.set(false);
+        this.synchronizedFutureList.cancelEvents(false);
+
+    }
+
+    /**
+     * Attempts to exit out of the program as fast as possible, while *trying* to be as graceful as possible. This should ideally only be called from a shutdown hook.
+     */
+    public void shutdownNow() {
+
+        // Disable looping and cancel all events, forcefully
+        this.continueScheduling.set(false);
+        this.synchronizedFutureList.cancelEvents(true);
+
+        // Attempt to shutdown the executors immediately, not waiting after calling
+        if (this.scheduler != null)
+            this.scheduler.shutdownNow();
+
+        if (this.consoleExecutor != null)
+            this.consoleExecutor.shutdownNow();
+
+    }
+
+    /**
+     * Uses the database classes to get all the game servers and their associated events. It will then schedule (using EventScheduler) any and all events from game servers who have been flagged to be autostarted.
+     *
+     * @return A list of {@code Future}s that each represent the future state of each scheduled event.
+     */
     private List<Future<?>> scheduleEvents() {
 
         ASCProperties properties = ASCProperties.getInstance();
