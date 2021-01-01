@@ -38,6 +38,9 @@ public class SynchronizedFutureList {
         // Use a try/finally for safety
         try {
 
+            // This keeps track of how many futures have been detected as cancelled so we can print one log message instead of a bunch upon a mass cancellation. However, this prevents a log from being made *exactly* when the future is cancelled, which is a tradeoff that seems worth it to keep the logs clean.
+            int numCancelled = 0;
+
             // Since we scheduled an array of events, we got back a list of futures that each represent one event. By calling .get() on each of them, we block the main thread and effectively wait until all the work is finished before exiting out of this method.
             for (Future<?> future : this.futureList) {
 
@@ -58,12 +61,15 @@ public class SynchronizedFutureList {
 
                 } catch (CancellationException e) {
 
-                    // TODO: 2020-12-30 Add a more verbose error (like say which event)
-                    ASCProperties.getInstance().LOGGER.logWarning("An event was cancelled!");
+                    numCancelled++;
 
                 }
 
             }
+
+            // If there were any cancelled events, log that.
+            if (numCancelled > 0)
+                ASCProperties.getInstance().LOGGER.logWarning(numCancelled + " events were cancelled!");
 
         } finally {
 

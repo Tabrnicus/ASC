@@ -157,6 +157,8 @@ public class ASCClient {
 
             }
 
+            ASCProperties.getInstance().LOGGER.logInfo("Shutting down...");
+
             // We wait for the console thread to shut down before shutting down the eventScheduler because the former relies on the latter.
             this.consoleExecutor.shutdown();
             this.consoleExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
