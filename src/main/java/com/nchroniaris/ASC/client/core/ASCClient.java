@@ -2,6 +2,7 @@ package com.nchroniaris.ASC.client.core;
 
 import com.nchroniaris.ASC.client.concurrent.SynchronizedFutureList;
 import com.nchroniaris.ASC.client.console.ASCConsole;
+import com.nchroniaris.ASC.client.console.ConsoleCallback;
 import com.nchroniaris.ASC.client.database.ASCRepository;
 import com.nchroniaris.ASC.client.model.Event;
 import com.nchroniaris.ASC.client.schedule.EventScheduler;
@@ -68,6 +69,30 @@ public class ASCClient {
     // This is to gracefully exit the main scheduling loop, when this is set to false. Atomic because this will be modified by multiple threads.
     private final AtomicBoolean continueScheduling;
 
+    // Define a callback implementation for ASCConsole. This is done in favor of making ASCClient implement ConsoleCallback since I don't want the console to have a reference to this object, since that can cause GC headaches
+    private final ConsoleCallback consoleCallback = new ConsoleCallback() {
+        @Override
+        public Future<?> scheduleEvent(Event event) {
+
+            return ASCClient.this.scheduler.submitEventNow(event);
+
+        }
+
+        @Override
+        public void shutdown() {
+
+            ASCClient.this.shutdown();
+
+        }
+
+        @Override
+        public void shutdownNow() {
+
+            ASCClient.this.shutdownNow();
+
+        }
+    };
+
     public ASCClient(ClientOptions options) {
 
         // If options are null (which they shouldn't be) create a default set. Otherwise clone the object to prevent it be mutated further.
@@ -116,11 +141,11 @@ public class ASCClient {
             if (!this.options.serverless)
                 System.out.println("Server registration stub!");
 
-            // Spawn EventScheduler and a console instance. We pass eventScheduler to ASCConsole in order to allow it to schedule manual async events requested by the user.
+            // Spawn EventScheduler and a console instance. We pass consoleCallback to ASCConsole in order to allow it to schedule manual async events requested by the user. We do this after the instantiation of EventScheduler() in order to guarantee that the callback has a non-null scheduler to call.
             this.scheduler = new EventScheduler();
-            ASCConsole console = new ASCConsole(terminal, this.scheduler);
+            ASCConsole console = new ASCConsole(terminal, this.consoleCallback);
 
-            // We want the console to be on its own thread so that it doesn't interrupt the main thread
+            // We want the console to be on its own thread so that it doesn't block the main thread with IO
             this.consoleExecutor = Executors.newSingleThreadScheduledExecutor();
             this.consoleExecutor.execute(console);
 
