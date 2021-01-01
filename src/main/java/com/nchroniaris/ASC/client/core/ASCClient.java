@@ -121,13 +121,7 @@ public class ASCClient {
         //  1) The program exits normally
         //  2) A user interrupt is made, such as ^C.
         // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-
-            // Debug print
-            System.out.println("Shutdown hook invoked, shutting down gracefully...");
-            ASCClient.this.scheduler.shutdownNow();
-
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownNow));
 
         // Spawn a terminal using try-with-resources. In any case, the close() method will be invoked even if there is a kill signal
         try (ASCTerminal terminal = new ASCTerminal(this.options.allowDumbTerminal)) {
