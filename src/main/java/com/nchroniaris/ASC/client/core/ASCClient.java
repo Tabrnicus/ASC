@@ -247,8 +247,4 @@ public class ASCClient {
 
     }
 
-    private void shutdownNow() {
-        System.out.println("Stub shutdownNow()");
-    }
-
 }
