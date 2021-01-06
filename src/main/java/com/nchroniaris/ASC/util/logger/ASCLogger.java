@@ -118,7 +118,7 @@ public class ASCLogger {
     public synchronized void logInfo(String message) {
 
         // Prepend proper prefix for the message
-        message = "[INFO]:\t\t" + message;
+        message = "[INFO]:\t" + message;
 
         // Log to the file
         this.log(message);
@@ -137,7 +137,7 @@ public class ASCLogger {
     public synchronized void logWarning(String message) {
 
         // Prepend proper prefix for the message
-        message = "[WARNING]:\t" + message;
+        message = "[WARN]:\t" + message;
 
         // Log to the file
         this.log(message);
@@ -156,7 +156,7 @@ public class ASCLogger {
     public synchronized void logError(String message) {
 
         // Prepend proper prefix for the message
-        message = "[CRITICAL]:\t" + message;
+        message = "[CRIT]:\t" + message;
 
         // Log to the file
         this.log(message);
