@@ -123,17 +123,15 @@ public class ASCClient {
         // This is according to the docs: https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#addShutdownHook-java.lang.Thread-
         Runtime.getRuntime().addShutdownHook(new Thread(this::shutdownNow));
 
-        // Spawn a terminal using try-with-resources. In any case, the close() method will be invoked even if there is a kill signal
+        // Spawn a terminal using try-with-resources. In any case, the close() method should be invoked but in the case of a kill signal it's not guaranteed (see note at end of try block)
         try (ASCTerminal terminal = new ASCTerminal(this.options.allowDumbTerminal)) {
 
             // Attach terminal (user facing UI) to the logger so that it shows up there
             properties.LOGGER.setTerminal(terminal);
 
-            properties.LOGGER.logInfo(String.format("Client started with serverless value `%s`.", this.options.serverless ? "true" : "false"));
-
             // Register events with ASCServer (Stub for now)
             if (!this.options.serverless)
-                System.out.println("Server registration stub!");
+                properties.LOGGER.logInfo("Server registration stub!");
 
             // Spawn EventScheduler and a console instance. We pass consoleCallback to ASCConsole in order to allow it to schedule manual async events requested by the user. We do this after the instantiation of EventScheduler() in order to guarantee that the callback has a non-null scheduler to call.
             this.scheduler = new EventScheduler();
@@ -157,7 +155,7 @@ public class ASCClient {
 
             }
 
-            ASCProperties.getInstance().LOGGER.logInfo("Shutting down...");
+            // NOTE: Anything after this point is fair game to not get executed by the main thread (most of the time). As far as I can tell, the JVM forcibly terminates the main thread *at some point* when receiving an interrupt, like SIGTERM. This means that while shutdownNow() is definitely invoked, the rest of the code here might not be. This isn't a problem because shutdownNow() pretty much does what the following does, but what might be a problem is that the implicit finally{} block in this try-with-resources usually does not execute, meaning that ASCTerminal is not closed properly. I have no idea how "destructive" not closing the terminal is when the JVM is shutting down, but I imagine it's not that bad. I am not sure how else to restructure this such that the terminal is guaranteed to shut down on SIGTERM.
 
             // We wait for the console thread to shut down before shutting down the eventScheduler because the former relies on the latter.
             this.consoleExecutor.shutdown();
@@ -185,6 +183,8 @@ public class ASCClient {
      */
     public void shutdown() {
 
+        ASCProperties.getInstance().LOGGER.logInfo("Shutting down (user request)...");
+
         // Disable looping and cancel all events
         this.continueScheduling.set(false);
         this.synchronizedFutureList.cancelEvents(false);
@@ -195,6 +195,8 @@ public class ASCClient {
      * Attempts to exit out of the program as fast as possible, while *trying* to be as graceful as possible. This should ideally only be called from a shutdown hook.
      */
     public void shutdownNow() {
+
+        ASCProperties.getInstance().LOGGER.logInfo("Shutting down (OS request)...");
 
         // Disable looping and cancel all events, forcefully
         this.continueScheduling.set(false);
